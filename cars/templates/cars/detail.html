@@ -1,0 +1,103 @@
+{% extends 'cars/base.html' %}
+
+{% block content %}
+<div class="card" style="max-width: 800px; margin: 0 auto;">
+    {% if car.images.first %}
+    <img src="{{ car.images.first.image.url }}" alt="{{ car.make }} {{ car.model }}"
+        style="width:100%; height:400px; object-fit:cover; border-radius:0.5rem; margin-bottom:1rem;">
+    {% endif %}
+    <h1>{{ car.year }} {{ car.make }} {{ car.model }}</h1>
+    <div class="car-price">{{ currency_symbol }}{{ final_price|floatformat:2 }}</div>
+
+    <div style="margin-bottom: 2rem;">
+        <p><strong>Type:</strong> {{ car.get_car_type_display }}</p>
+        <p><strong>Mileage:</strong> {{ car.mileage }}</p>
+        <p><strong>Status:</strong> {{ car.status }}</p>
+        <p><strong>Description:</strong> {{ description }}</p>
+    </div>
+
+    <h3>Optional Features</h3>
+    <form method="get" action="">
+        <label style="display:block; margin-bottom:0.5rem;">
+            <input type="checkbox" name="warranty" value="1" {% if request.GET.warranty %}checked{% endif %}
+                onchange="this.form.submit()" style="width:auto;">
+            Add Extended Warranty (+{{ currency_symbol }}{{ warranty_price|floatformat:0 }})
+        </label>
+        <label style="display:block; margin-bottom:0.5rem;">
+            <input type="checkbox" name="insurance" value="1" {% if request.GET.insurance %}checked{% endif %}
+                onchange="this.form.submit()" style="width:auto;">
+            Add Insurance (+{{ currency_symbol }}{{ insurance_price|floatformat:0 }})
+        </label>
+        <label style="display:block; margin-bottom:0.5rem;">
+            <input type="checkbox" name="premium" value="1" {% if request.GET.premium %}checked{% endif %}
+                onchange="this.form.submit()" style="width:auto;">
+            Premium Listing Highlight (+{{ currency_symbol }}{{ premium_price|floatformat:0 }})
+        </label>
+    </form>
+
+    <div style="margin-top: 2rem; display:flex; gap:1rem; flex-wrap:wrap;">
+        {% if user.is_authenticated %}
+        {% if user == car.owner %}
+        <!-- Owner View -->
+        <div style="display:flex; gap:0.5rem; align-items:center;">
+            <a href="{% url 'update_car' car.id %}" class="btn btn-primary">Update Details</a>
+
+            <form action="{% url 'update_car_status' car.id %}" method="post" style="margin:0;">
+                {% csrf_token %}
+                {% if car.status == 'available' %}
+                <button type="submit" name="status" value="sold" class="btn" style="background:#f59e0b;">Mark as
+                    Sold</button>
+                {% else %}
+                <button type="submit" name="status" value="available" class="btn" style="background:#10b981;">Mark as
+                    Available</button>
+                {% endif %}
+            </form>
+
+            <a href="{% url 'delete_car' car.id %}" class="btn btn-danger"
+                onclick="return confirm('Are you sure?')">Delete Car</a>
+        </div>
+        {% else %}
+        <!-- Buyer View -->
+        <div style="width:100%; margin-bottom:1rem;">
+            <h3 style="margin-bottom: 0.5rem; font-size: 1.2rem;">Seller Contact</h3>
+            <div style="display:flex; gap:1rem;">
+                {% if car.contact_email %}
+                <a href="mailto:{{ car.contact_email }}" class="btn"
+                    style="background:white; color:black; display:flex; align-items:center; gap:0.5rem; font-weight:600;">
+                    <i class="fa-solid fa-envelope"></i> Email Seller
+                </a>
+                {% endif %}
+                {% if car.contact_whatsapp %}
+                <a href="https://wa.me/{{ car.contact_whatsapp }}" target="_blank" class="btn"
+                    style="background:white; color:black; display:flex; align-items:center; gap:0.5rem; font-weight:600;">
+                    <i class="fa-brands fa-whatsapp"></i> WhatsApp
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div style="display:flex; gap:1rem;">
+            <a href="{% url 'follow_car' car.id %}" class="btn"
+                style="background:var(--glass-bg); border:1px solid var(--glass-border);">
+                {% if user in car.followers.all %}Unfollow Car{% else %}Follow Car{% endif %}
+            </a>
+
+            {% if car.status == 'available' %}
+            <a href="{% url 'buy_car' car.id %}" class="btn btn-primary" style="background:#10b981;">Buy</a>
+            {% else %}
+            <button class="btn" disabled style="background:#64748b; cursor:not-allowed;">Sold Out</button>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% if user.is_superuser and user != car.owner %}
+        <a href="{% url 'delete_car' car.id %}" class="btn btn-danger" onclick="return confirm('Are you sure?')">Delete
+            Car (Admin)</a>
+        {% endif %}
+
+        {% else %}
+        <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-primary">Login to Buy/Negotiate</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

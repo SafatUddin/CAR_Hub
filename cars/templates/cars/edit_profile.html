@@ -1,0 +1,34 @@
+{% extends 'cars/base.html' %}
+
+{% block content %}
+<div class="card" style="max-width: 600px; margin: 0 auto;">
+    <h2>Edit Profile</h2>
+    <form method="post">
+        {% csrf_token %}
+
+        <!-- Render Form Fields (First Name, Last Name, Email, WhatsApp) -->
+        {% for field in form %}
+        <div style="margin-bottom: 1rem;">
+            <label style="display:block; margin-bottom:0.5rem;">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}
+            <div style="color: #ef4444; font-size: 0.9rem;">
+                {{ field.errors.0 }}
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        <hr style="border:0; border-top:1px solid var(--glass-border); margin: 2rem 0;">
+        <h3>Change Password</h3>
+
+        <label>New Password (leave blank to keep current)</label>
+        <input type="password" name="new_password" placeholder="New Password">
+
+        <label>Confirm New Password</label>
+        <input type="password" name="confirm_password" placeholder="Confirm New Password">
+
+        <button type="submit" class="btn btn-primary" style="margin-top:1rem;">Update Profile</button>
+    </form>
+</div>
+{% endblock %}

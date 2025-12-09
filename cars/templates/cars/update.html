@@ -1,0 +1,127 @@
+{% extends 'cars/base.html' %}
+
+{% block content %}
+<div class="card" style="max-width: 600px; margin: 0 auto;">
+    <h2>Update Car Details</h2>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <label>Make</label>
+        <input type="text" name="make" value="{{ car.make }}" required>
+
+        <label>Model</label>
+        <input type="text" name="model" value="{{ car.model }}" required>
+
+        <label>Manufacture Year</label>
+        <select name="year" required>
+            {% for y in year_range %}
+            <option value="{{ y }}" {% if y == car.year %}selected{% endif %}>{{ y }}</option>
+            {% endfor %}
+        </select>
+
+        <label>Price</label>
+        <div style="display:flex; gap:1rem; margin-bottom:1rem;">
+            <!-- Defaulting to BDT and the stored price -->
+            <input type="number" step="any" name="price" min="0" value="{{ car.price }}" required id="priceInput"
+                style="margin-bottom:0;">
+            <select name="currency" id="currencyInput" style="width:100px; margin-bottom:0;">
+                <option value="BDT" selected>BDT</option>
+                <option value="USD">USD</option>
+                <option value="GBP">GBP</option>
+                <option value="EUR">EUR</option>
+                <option value="INR">INR</option>
+            </select>
+        </div>
+
+        <label>Mileage (Km)</label>
+        <input type="number" name="mileage" min="0" value="{{ car.mileage }}" required>
+
+        <label>Type</label>
+        <select name="car_type">
+            <option value="sedan" {% if car.car_type == 'sedan' %}selected{% endif %}>Sedan</option>
+            <option value="suv" {% if car.car_type == 'suv' %}selected{% endif %}>SUV</option>
+            <option value="truck" {% if car.car_type == 'truck' %}selected{% endif %}>Truck</option>
+            <option value="coupe" {% if car.car_type == 'coupe' %}selected{% endif %}>Coupe</option>
+        </select>
+
+        <h3>Contact Information</h3>
+        <p style="font-size:0.9rem; color:#ccc; margin-bottom:1rem;">At least one contact method is required.</p>
+
+        <label>Contact Email</label>
+        <input type="email" name="contact_email" value="{{ car.contact_email|default:'' }}"
+            placeholder="e.g. seller@example.com">
+
+        <label>WhatsApp Number</label>
+        <input type="text" name="contact_whatsapp" value="{{ car.contact_whatsapp|default:'' }}"
+            placeholder="e.g. +8801700000000">
+
+        <label>New Images (Optional)</label>
+        <input type="file" name="images" multiple accept="image/*">
+        <small style="display:block; margin-bottom:1rem; color:#94a3b8;">Upload to add more images. Existing images
+            remain.</small>
+
+        <button type="submit" class="btn btn-primary" id="submitBtn">Update Details</button>
+    </form>
+</div>
+
+<script>
+    const priceInput = document.getElementById('priceInput');
+    const currencyInput = document.getElementById('currencyInput');
+    const submitBtn = document.getElementById('submitBtn');
+
+    // Exchange rates (must match Python adapter)
+    const rates = {
+        'BDT': 1.0,
+        'USD': 120.0,
+        'GBP': 150.0,
+        'EUR': 130.0,
+        'INR': 1.45
+    };
+
+    let lastCurrency = 'BDT';
+
+    function updatePriceValue() {
+        const currentCurrency = currencyInput.value;
+        if (currentCurrency === lastCurrency) return;
+
+        const currentPrice = parseFloat(priceInput.value) || 0;
+
+        // Convert from last currency to BDT
+        const priceInBDT = currentPrice * rates[lastCurrency];
+
+        // Convert from BDT to new currency
+        const newPrice = priceInBDT / rates[currentCurrency];
+
+        // Update input value (Ceil to remove decimals)
+        priceInput.value = Math.ceil(newPrice);
+
+        lastCurrency = currentCurrency;
+        checkPrice();
+    }
+
+    function checkPrice() {
+        const price = parseFloat(priceInput.value) || 0;
+        const currency = currencyInput.value;
+        const rate = rates[currency] || 1.0;
+
+        // Convert input price to BDT
+        const priceInBDT = price * rate;
+
+        // Check if value is less than 100,000 BDT (allow small margin for float errors)
+        if (priceInBDT < 99999) {
+            // Set to Red (Danger color)
+            submitBtn.style.background = 'linear-gradient(135deg, #ef4444, #b91c1c)';
+            submitBtn.textContent = `Price too low (< 100k BDT)`;
+        } else {
+            // Reset to default (Primary color)
+            submitBtn.style.background = '';
+            submitBtn.textContent = 'Update Details';
+        }
+    }
+
+    priceInput.addEventListener('input', checkPrice);
+    currencyInput.addEventListener('change', updatePriceValue);
+
+    // Run on load
+    checkPrice();
+</script>
+{% endblock %}

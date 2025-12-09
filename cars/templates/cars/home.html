@@ -1,0 +1,101 @@
+{% extends 'cars/base.html' %}
+
+{% block content %}
+<div class="search-bar">
+    <form method="get" action="" id="searchForm"
+        style="display:flex; gap:0.5rem; align-items:center; justify-content:center;">
+        <select name="search_type" id="searchType" onchange="updateSearchInputs()"
+            style="padding:0.5rem; border-radius:0.5rem; border:none;">
+            <option value="brand" {% if request.GET.search_type == 'brand' %}selected{% endif %}>Make</option>
+            <option value="model" {% if request.GET.search_type == 'model' %}selected{% endif %}>Model</option>
+            <option value="price" {% if request.GET.search_type == 'price' %}selected{% endif %}>Price Range</option>
+            <option value="mileage" {% if request.GET.search_type == 'mileage' %}selected{% endif %}>Mileage Range
+            </option>
+        </select>
+
+        <!-- Text Input (Brand/Model) -->
+        <input type="text" name="query" id="textInput" placeholder="Search..." value="{{ request.GET.query }}"
+            style="padding:0.5rem; border-radius:0.5rem; border:none; width:400px;">
+
+        <!-- Range Inputs (Price/Mileage) -->
+        <div id="rangeInputs" style="display:none; gap:0.5rem;">
+            <input type="number" name="min_price" id="minInput" placeholder="Min"
+                style="padding:0.5rem; border-radius:0.5rem; border:none; width:200px;">
+            <input type="number" name="max_price" id="maxInput" placeholder="Max"
+                style="padding:0.5rem; border-radius:0.5rem; border:none; width:200px;">
+        </div>
+
+        <button type="submit" class="btn btn-primary">Search</button>
+    </form>
+</div>
+
+<script>
+    function updateSearchInputs() {
+        const type = document.getElementById('searchType').value;
+        const textInput = document.getElementById('textInput');
+        const rangeInputs = document.getElementById('rangeInputs');
+        const minInput = document.getElementById('minInput');
+        const maxInput = document.getElementById('maxInput');
+
+        if (type === 'price' || type === 'mileage') {
+            textInput.style.display = 'none';
+            rangeInputs.style.display = 'flex';
+            textInput.disabled = true;
+            minInput.disabled = false;
+            maxInput.disabled = false;
+
+            if (type === 'price') {
+                minInput.name = 'min_price';
+                maxInput.name = 'max_price';
+                minInput.placeholder = 'Min Price';
+                maxInput.placeholder = 'Max Price';
+                minInput.value = "{{ request.GET.min_price|default:'' }}";
+                maxInput.value = "{{ request.GET.max_price|default:'' }}";
+            } else { // type === 'mileage'
+                minInput.name = 'min_mileage';
+                maxInput.name = 'max_mileage';
+                minInput.placeholder = 'Min Mileage';
+                maxInput.placeholder = 'Max Mileage';
+                minInput.value = "{{ request.GET.min_mileage|default:'' }}";
+                maxInput.value = "{{ request.GET.max_mileage|default:'' }}";
+            }
+        } else {
+            textInput.style.display = 'block';
+            rangeInputs.style.display = 'none';
+            textInput.disabled = false;
+            minInput.disabled = true;
+            maxInput.disabled = true;
+            // Clear range input values when switching to text input
+            minInput.value = '';
+            maxInput.value = '';
+        }
+    }
+
+    // Run on load
+    updateSearchInputs();
+</script>
+
+<div class="grid">
+    {% for car in cars %}
+    <div class="card">
+        {% if car.images.first %}
+        <img src="{{ car.images.first.image.url }}" alt="{{ car.make }} {{ car.model }}"
+            style="width:100%; height:200px; object-fit:cover; border-radius:0.5rem; margin-bottom:1rem;">
+        {% else %}
+        <div
+            style="width:100%; height:200px; background:rgba(0,0,0,0.2); border-radius:0.5rem; margin-bottom:1rem; display:flex; align-items:center; justify-content:center;">
+            No Image</div>
+        {% endif %}
+        <h3>{{ car.year }} {{ car.make }} {{ car.model }}</h3>
+        <div class="car-price">{{ car.currency_symbol }}{{ car.display_price|floatformat:2 }}</div>
+        <div class="car-meta">
+            <span>{{ car.mileage }} miles</span>
+            <span>{{ car.get_car_type_display }}</span>
+        </div>
+        <a href="{% url 'car_detail' car.id %}" class="btn btn-primary" style="margin-top:auto;">View Details</a>
+    </div>
+    {% empty %}
+    <p>No cars found.</p>
+    {% endfor %}
+</div>
+{% endblock %}

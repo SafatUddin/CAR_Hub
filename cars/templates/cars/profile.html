@@ -1,0 +1,110 @@
+{% extends 'cars/base.html' %}
+
+{% block content %}
+<div class="card" style="max-width: 800px; margin: 0 auto;">
+    <h2>My Profile</h2>
+    <div style="margin-bottom: 2rem;">
+        <p><strong>Name:</strong> {{ user.first_name }} {{ user.last_name }}</p>
+        <p><strong>Email:</strong> {{ user.email }}</p>
+        {% if user.profile.whatsapp_number %}
+        <p><strong>WhatsApp:</strong> {{ user.profile.whatsapp_number }}</p>
+        {% endif %}
+        <p><strong>Date Joined:</strong> {{ user.date_joined|date:"F j, Y" }}</p>
+        <a href="{% url 'edit_profile' %}" class="btn btn-primary" style="margin-top:1rem;">Edit Profile</a>
+    </div>
+
+    <div style="margin-bottom: 2rem;">
+        <h3>My Cars</h3>
+        {% if my_cars %}
+        <div class="grid">
+            {% for car in my_cars %}
+            <div class="card">
+                {% if car.images.first %}
+                <img src="{{ car.images.first.image.url }}" alt="{{ car.make }} {{ car.model }}"
+                    style="width:100%; height:150px; object-fit:cover; border-radius:0.5rem; margin-bottom:1rem;">
+                {% endif %}
+                <h4>{{ car.year }} {{ car.make }} {{ car.model }}</h4>
+                <p>Status: <strong>{{ car.status|title }}</strong></p>
+                <p>Price: {{ car.price }} BDT</p>
+                <div style="margin-top: 1rem; display:flex; gap:0.5rem;">
+                    <a href="{% url 'car_detail' car.id %}" class="btn btn-primary" style="font-size:0.9rem;">View</a>
+                    <a href="{% url 'update_car' car.id %}" class="btn btn-primary" style="font-size: 0.8rem;">Update
+                        Details</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p>You haven't listed any cars yet.</p>
+        <a href="{% url 'create_car' %}" class="btn btn-primary">List a Car</a>
+        {% endif %}
+    </div>
+
+    <!-- Buy Requests Section -->
+    <div style="margin-bottom: 2rem;">
+        <h3>Incoming Buy Requests</h3>
+        {% if buy_requests %}
+        <div class="grid">
+            {% for order in buy_requests %}
+            <div class="card" style="border-left: 4px solid #10b981;">
+                <h4>Request for: {{ order.car.year }} {{ order.car.make }} {{ order.car.model }}</h4>
+                <p>Buyer: <strong>{{ order.buyer.username }}</strong></p>
+                <p>Email: {{ order.buyer.email }}</p>
+                <p>Status: {{ order.status|title }}</p>
+                <p style="font-size:0.8rem; color:#ccc;">{{ order.created_at|date:"M d, Y" }}</p>
+
+                {% if order.status == 'pending' %}
+
+                <!-- Contact Buyer Section -->
+                <div style="margin-top:1rem; padding-top:1rem; border-top:1px solid var(--glass-border);">
+                    <h4 style="font-size:1rem; margin-bottom:0.5rem;">Contact Buyer</h4>
+                    <div style="display:flex; gap:0.5rem; margin-bottom:1rem;">
+                        {% if order.buyer.email %}
+                        <a href="mailto:{{ order.buyer.email }}" class="btn"
+                            style="background:white; color:black; display:flex; align-items:center; gap:0.5rem; font-size:0.9rem; flex:1;">
+                            <i class="fa-solid fa-envelope"></i> Email
+                        </a>
+                        {% endif %}
+                        {% if order.buyer.profile.whatsapp_number %}
+                        <a href="https://wa.me/{{ order.buyer.profile.whatsapp_number }}" target="_blank" class="btn"
+                            style="background:white; color:black; display:flex; align-items:center; gap:0.5rem; font-size:0.9rem; flex:1;">
+                            <i class="fa-brands fa-whatsapp"></i> WhatsApp
+                        </a>
+                        {% endif %}
+                    </div>
+
+                    <form action="{% url 'accept_order' order.id %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary" style="width:100%;">Accept & Mark Sold</button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p>No buy requests yet.</p>
+        {% endif %}
+    </div>
+
+    <!-- Account Actions -->
+    <div
+        style="margin-top: 3rem; padding-top: 2rem; border-top: 2px solid var(--glass-border); display:flex; gap:1rem; justify-content:center;">
+        <form action="{% url 'logout' %}" method="post" style="margin:0;">
+            {% csrf_token %}
+            <button type="submit" class="btn"
+                style="background:var(--glass-bg); border:1px solid var(--glass-border); color:white;">
+                <i class="fa-solid fa-right-from-bracket"></i> Logout
+            </button>
+        </form>
+
+        <form action="{% url 'delete_account' %}" method="post" style="margin:0;"
+            onsubmit="return confirm('Are you sure you want to delete your account? This action cannot be undone and will delete all your listings.');">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">
+                <i class="fa-solid fa-trash"></i> Delete Account
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
