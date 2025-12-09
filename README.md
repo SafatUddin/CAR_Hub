@@ -28,24 +28,27 @@ Every time you want to start the project, follow these simple steps:
 
 ## Design Patterns Implemented
 
-1.  **Factory Pattern**: Used to create different types of cars (Sedan, SUV, Truck, Coupe).
+1.  **Factory Design Pattern**: Used to create different types of cars (Sedan, SUV, Truck, Coupe).
     *   Location: `cars/patterns/factory.py`
     *   Usage: `views.py` -> `create_car`
-2.  **Singleton Pattern**: Used for Database Configuration Manager.
+2.  **Singleton Design Pattern**: Used for Database Configuration Manager.
     *   Location: `cars/patterns/singleton.py`
     *   Usage: `views.py` -> `home`
 3.  **Observer Pattern**: Used for price drop notifications.
     *   Location: `cars/patterns/observer.py`
     *   Usage: `views.py` -> `update_price`
-4.  **Strategy Pattern**: Used for search and filtering (Price, Brand, Mileage).
+4.  **Strategy Design Pattern**: Used for search and filtering (Price, Brand, Mileage).
     *   Location: `cars/patterns/strategy.py`
     *   Usage: `views.py` -> `home`
-5.  **Decorator Pattern**: Used for optional add-ons (Warranty, Insurance, Premium Listing).
+5.  **Decorator Design Pattern**: Used for optional add-ons (Warranty, Insurance, Premium Listing).
     *   Location: `cars/patterns/decorator.py`
     *   Usage: `views.py` -> `car_detail`
-6.  **Proxy Pattern**: Used for access control (Permissions for deleting/posting cars).
+6.  **Proxy Design Pattern**: Used for access control (Permissions for deleting/posting cars).
     *   Location: `cars/patterns/proxy.py`
     *   Usage: `views.py` -> `create_car`, `delete_car`
+7. **Adapter Design Pattern**: Used for converting the currency in price of car and other add-ons
+    *   Location: `cars/patterns/adapter.py`
+    *   Usage: `views.py` -> `car_detail`
 
 ## Setup
 
