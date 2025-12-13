@@ -6,13 +6,14 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login, logout
 from .models import Car, Notification, Order, CarImage
 from .patterns.factory import SedanFactory, SUVFactory, TruckFactory, CoupeFactory
-from .patterns.strategy import CarSearchContext, PriceSearchStrategy, BrandSearchStrategy, MileageSearchStrategy
-from .patterns.decorator import BasicCar, WarrantyDecorator, InsuranceDecorator, PremiumListingDecorator
+from .patterns.strategy import CarSearchContext, PriceSearchStrategy, BrandSearchStrategy, MileageSearchStrategy, TypeSearchStrategy, YearSearchStrategy
+from .patterns.decorator import BasicCar, WarrantyDecorator, DashCamDecorator, SeatCoversDecorator, WindowTintingDecorator
 from .patterns.proxy import CarAccessProxy
 from .patterns.observer import CarPriceSubject, UserObserver
 from .patterns.singleton import DatabaseConfigManager
 from .patterns.adapter import CurrencyAdapter
-from .forms import SignUpForm, EditProfileForm
+from .forms import SignUpForm, EditProfileForm, validate_email_domain, validate_whatsapp_number
+import re
 
 def welcome(request):
     # If user is already logged in, redirect to home
@@ -161,11 +162,40 @@ def accept_order(request, order_id):
     return redirect('profile')
 
 @login_required
+def reject_order(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+    car = order.car
+    
+    if request.user != car.owner:
+        messages.error(request, "You are not authorized to perform this action.")
+        return redirect('profile')
+    
+    if request.method == 'POST':
+        # 1. Mark order as cancelled
+        order.status = 'cancelled'
+        order.save()
+        
+        # 2. Notify buyer
+        Notification.objects.create(
+            user=order.buyer,
+            message=f"Your buy request for {car.year} {car.make} {car.model} was rejected by the seller."
+        )
+        
+        messages.success(request, f"Order rejected successfully.")
+    
+    return redirect('profile')
+
+@login_required
 def home(request):
+    # Redirect admin to dashboard
+    if request.user.is_superuser:
+        return redirect('admin_dashboard')
+    
     # Singleton usage (just for demo)
     db_config = DatabaseConfigManager().get_config()
     
-    cars = Car.objects.all()
+    # Only show approved cars
+    cars = Car.objects.filter(approval_status='approved')
     
     # Strategy Pattern
     search_type = request.GET.get('search_type')
@@ -189,6 +219,8 @@ def home(request):
                     
                     context = CarSearchContext(PriceSearchStrategy())
                     cars = context.execute_search([min_price_bdt, max_price_bdt])
+                    # Filter to only approved cars
+                    cars = cars.filter(approval_status='approved')
                 except ValueError:
                     pass
         elif search_type == 'brand':
@@ -196,11 +228,15 @@ def home(request):
             if query:
                 context = CarSearchContext(BrandSearchStrategy())
                 cars = context.execute_search(query)
+                # Filter to only approved cars
+                cars = cars.filter(approval_status='approved')
         elif search_type == 'model':
             query = request.GET.get('query')
             if query:
                 context = CarSearchContext(ModelSearchStrategy())
                 cars = context.execute_search(query)
+                # Filter to only approved cars
+                cars = cars.filter(approval_status='approved')
         elif search_type == 'mileage':
             min_mileage = request.GET.get('min_mileage')
             max_mileage = request.GET.get('max_mileage')
@@ -208,6 +244,26 @@ def home(request):
                 try:
                     context = CarSearchContext(MileageSearchStrategy())
                     cars = context.execute_search([int(min_mileage), int(max_mileage)])
+                    # Filter to only approved cars
+                    cars = cars.filter(approval_status='approved')
+                except ValueError:
+                    pass
+        elif search_type == 'type':
+            query = request.GET.get('query')
+            if query:
+                context = CarSearchContext(TypeSearchStrategy())
+                cars = context.execute_search(query)
+                # Filter to only approved cars
+                cars = cars.filter(approval_status='approved')
+        elif search_type == 'year':
+            query = request.GET.get('query')
+            if query:
+                try:
+                    # Single year selection
+                    context = CarSearchContext(YearSearchStrategy())
+                    cars = context.execute_search([int(query), int(query)])
+                    # Filter to only approved cars
+                    cars = cars.filter(approval_status='approved')
                 except ValueError:
                     pass
     
@@ -220,21 +276,37 @@ def home(request):
         adapter = CurrencyAdapter()
         car.display_price = adapter.convert_from_bdt(car.price, currency)
         car.currency_symbol = CurrencyAdapter.get_symbol(currency)
+    
+    # Generate year list for dropdown (e.g., 1990 to current year)
+    from datetime import datetime
+    current_year = datetime.now().year
+    years = list(range(current_year, 1989, -1))
             
-    return render(request, 'cars/home.html', {'cars': cars, 'current_currency': currency})
+    return render(request, 'cars/home.html', {
+        'cars': cars, 
+        'current_currency': currency,
+        'years': years
+    })
 
 def car_detail(request, car_id):
     car = get_object_or_404(Car, id=car_id)
+    
+    # Only show approved cars to non-admin users
+    if not request.user.is_superuser and car.approval_status != 'approved':
+        messages.error(request, "This car listing is not available.")
+        return redirect('home')
     
     # Decorator Pattern
     car_component = BasicCar(car)
     
     if request.GET.get('warranty'):
         car_component = WarrantyDecorator(car_component)
-    if request.GET.get('insurance'):
-        car_component = InsuranceDecorator(car_component)
-    if request.GET.get('premium'):
-        car_component = PremiumListingDecorator(car_component)
+    if request.GET.get('dashcam'):
+        car_component = DashCamDecorator(car_component)
+    if request.GET.get('seatcovers'):
+        car_component = SeatCoversDecorator(car_component)
+    if request.GET.get('tinting'):
+        car_component = WindowTintingDecorator(car_component)
         
     final_price_bdt = car_component.get_price()
     description = car_component.get_description()
@@ -250,8 +322,9 @@ def car_detail(request, car_id):
     # Calculate add-on prices in selected currency
     adapter = CurrencyAdapter()
     warranty_price = adapter.convert_from_bdt(50000, currency)
-    insurance_price = adapter.convert_from_bdt(100000, currency)
-    premium_price = adapter.convert_from_bdt(15000, currency)
+    dashcam_price = adapter.convert_from_bdt(15000, currency)
+    seatcovers_price = adapter.convert_from_bdt(20000, currency)
+    tinting_price = adapter.convert_from_bdt(10000, currency)
     
     return render(request, 'cars/detail.html', {
         'car': car,
@@ -260,8 +333,9 @@ def car_detail(request, car_id):
         'current_currency': currency,
         'description': description,
         'warranty_price': warranty_price,
-        'insurance_price': insurance_price,
-        'premium_price': premium_price,
+        'dashcam_price': dashcam_price,
+        'seatcovers_price': seatcovers_price,
+        'tinting_price': tinting_price,
     })
 
 @login_required
@@ -281,13 +355,46 @@ def create_car(request):
         currency_input = request.POST.get('currency', 'BDT')
         mileage = request.POST.get('mileage')
         car_type = request.POST.get('car_type')
-        contact_email = request.POST.get('contact_email')
-        contact_whatsapp = request.POST.get('contact_whatsapp')
+        contact_email = request.POST.get('contact_email', '').strip()
+        contact_whatsapp = request.POST.get('contact_whatsapp', '').strip()
         images = request.FILES.getlist('images')
+        registration_paper = request.FILES.get('registration_paper')
+        
+        # Validate Registration Paper
+        if not registration_paper:
+            messages.error(request, "Registration paper is required. Please upload the vehicle registration document.")
+            return render(request, 'cars/create.html')
         
         # Validate Contact Info
         if not contact_email and not contact_whatsapp:
             messages.error(request, "You must provide at least one contact method (Email or WhatsApp).")
+            return render(request, 'cars/create.html')
+        
+        # Validate email format
+        if contact_email:
+            from django.core.validators import validate_email
+            from django.core.exceptions import ValidationError
+            try:
+                validate_email(contact_email)
+            except ValidationError:
+                messages.error(request, "Invalid email address format.")
+                return render(request, 'cars/create.html')
+            
+            # Check if domain has valid MX records
+            if not validate_email_domain(contact_email):
+                messages.error(request, "This email domain does not exist or cannot receive emails. Please check your email address.")
+                return render(request, 'cars/create.html')
+        
+        # Validate WhatsApp format
+        if contact_whatsapp:
+            is_valid, error_msg = validate_whatsapp_number(contact_whatsapp)
+            if not is_valid:
+                messages.error(request, error_msg)
+                return render(request, 'cars/create.html')
+        
+        # Validate registration paper format
+        if not registration_paper.name.endswith('.pdf'):
+            messages.error(request, "Registration paper must be a PDF file.")
             return render(request, 'cars/create.html')
         
         # Convert to BDT
@@ -318,13 +425,17 @@ def create_car(request):
             # Save contact info
             car.contact_email = contact_email
             car.contact_whatsapp = contact_whatsapp
+            
+            # Save registration paper (required)
+            car.registration_paper = registration_paper
+            
             car.save()
             
             # Save images
             for image in images:
                 CarImage.objects.create(car=car, image=image)
                 
-            messages.success(request, "Car listed successfully!")
+            messages.success(request, "Request for listing Car is sent successfully!")
             return redirect('home')
             
     import datetime
@@ -373,9 +484,10 @@ def update_car(request, car_id):
         currency_input = request.POST.get('currency', 'BDT')
         mileage = request.POST.get('mileage')
         car_type = request.POST.get('car_type')
-        contact_email = request.POST.get('contact_email')
-        contact_whatsapp = request.POST.get('contact_whatsapp')
+        contact_email = request.POST.get('contact_email', '').strip()
+        contact_whatsapp = request.POST.get('contact_whatsapp', '').strip()
         images = request.FILES.getlist('images')
+        registration_paper = request.FILES.get('registration_paper')
         
         # Validate Contact Info
         if not contact_email and not contact_whatsapp:
@@ -384,6 +496,37 @@ def update_car(request, car_id):
             current_year = datetime.date.today().year
             year_range = range(current_year, 1939, -1)
             return render(request, 'cars/update.html', {'car': car, 'year_range': year_range})
+        
+        # Validate email format
+        if contact_email:
+            from django.core.validators import validate_email
+            from django.core.exceptions import ValidationError
+            try:
+                validate_email(contact_email)
+            except ValidationError:
+                messages.error(request, "Invalid email address format.")
+                import datetime
+                current_year = datetime.date.today().year
+                year_range = range(current_year, 1939, -1)
+                return render(request, 'cars/update.html', {'car': car, 'year_range': year_range})
+            
+            # Check if domain has valid MX records
+            if not validate_email_domain(contact_email):
+                messages.error(request, "This email domain does not exist or cannot receive emails. Please check your email address.")
+                import datetime
+                current_year = datetime.date.today().year
+                year_range = range(current_year, 1939, -1)
+                return render(request, 'cars/update.html', {'car': car, 'year_range': year_range})
+        
+        # Validate WhatsApp format
+        if contact_whatsapp:
+            is_valid, error_msg = validate_whatsapp_number(contact_whatsapp)
+            if not is_valid:
+                messages.error(request, error_msg)
+                import datetime
+                current_year = datetime.date.today().year
+                year_range = range(current_year, 1939, -1)
+                return render(request, 'cars/update.html', {'car': car, 'year_range': year_range})
             
         # Convert to BDT
         new_price_bdt = CurrencyAdapter.convert_to_bdt_static(price_input, currency_input)
@@ -401,6 +544,9 @@ def update_car(request, car_id):
         car.car_type = car_type
         car.contact_email = contact_email
         car.contact_whatsapp = contact_whatsapp
+        
+        # Note: Registration paper cannot be changed after listing
+        
         car.save()
         
         # Add new images
@@ -409,11 +555,16 @@ def update_car(request, car_id):
             
         # Notify followers if price changed
         if price_changed:
-            subject = CarPriceSubject()
-            # In a real app, we'd only notify actual followers, which we do in observer.py
-            # The previous code attached all users, which was for demo. 
-            # Now we use the followers relationship in the model.
-            subject.change_price(car, new_price_bdt)
+            # Create subject with the car
+            subject = CarPriceSubject(car)
+            
+            # Attach all followers as observers (proper Observer pattern)
+            for follower in car.followers.all():
+                observer = UserObserver(follower)
+                subject.attach(observer)
+            
+            # Change price and notify all attached observers
+            subject.change_price(new_price_bdt)
             
         messages.success(request, "Car details updated successfully!")
         return redirect('car_detail', car_id=car.id)
@@ -498,3 +649,64 @@ def follow_car(request, car_id):
         car.followers.add(request.user)
         messages.success(request, f"You are now following this {car.make} {car.model}. You will be notified of updates.")
     return redirect('car_detail', car_id=car.id)
+
+@login_required
+def admin_dashboard(request):
+    # Only allow superusers to access
+    if not request.user.is_superuser:
+        messages.error(request, "You do not have permission to access the admin dashboard.")
+        return redirect('home')
+    
+    # Get statistics
+    from django.db.models import Count
+    total_users = User.objects.count()
+    total_cars = Car.objects.count()
+    available_cars = Car.objects.filter(status='available').count()
+    sold_cars = Car.objects.filter(status='sold').count()
+    pending_orders = Order.objects.filter(status='pending').count()
+    
+    # Get recent users with their car count (exclude superusers)
+    recent_users = User.objects.filter(is_superuser=False).annotate(car_count=Count('car')).order_by('-date_joined')[:10]
+    recent_users_data = [{'user': user, 'car_count': user.car_count} for user in recent_users]
+    
+    # Get recent cars
+    recent_cars = Car.objects.all().order_by('-created_at')[:10]
+    
+    # Get recent orders
+    recent_orders = Order.objects.all().order_by('-created_at')[:10]
+    
+    return render(request, 'cars/admin_dashboard.html', {
+        'total_users': total_users,
+        'total_cars': total_cars,
+        'available_cars': available_cars,
+        'sold_cars': sold_cars,
+        'pending_orders': pending_orders,
+        'recent_users': recent_users_data,
+        'recent_cars': recent_cars,
+        'recent_orders': recent_orders,
+    })
+
+@login_required
+def approve_car(request, car_id):
+    proxy = CarAccessProxy(request.user)
+    success, msg = proxy.approve_car(car_id)
+    
+    if success:
+        messages.success(request, msg)
+    else:
+        messages.error(request, msg)
+    
+    return redirect('car_detail', car_id=car_id)
+
+@login_required
+def reject_car(request, car_id):
+    proxy = CarAccessProxy(request.user)
+    reason = request.POST.get('reason', '') if request.method == 'POST' else ''
+    success, msg = proxy.reject_car(car_id, reason)
+    
+    if success:
+        messages.success(request, msg)
+    else:
+        messages.error(request, msg)
+    
+    return redirect('car_detail', car_id=car_id)

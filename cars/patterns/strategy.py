@@ -26,6 +26,16 @@ class MileageSearchStrategy(SearchStrategy):
         min_mileage, max_mileage = mileage_range
         return Car.objects.filter(mileage__gte=min_mileage, mileage__lte=max_mileage)
 
+class TypeSearchStrategy(SearchStrategy):
+    def search(self, car_type):
+        return Car.objects.filter(car_type__iexact=car_type)
+
+class YearSearchStrategy(SearchStrategy):
+    def search(self, year_range):
+        # year_range is expected to be a tuple or list: [min_year, max_year]
+        min_year, max_year = year_range
+        return Car.objects.filter(year__gte=min_year, year__lte=max_year)
+
 class CarSearchContext:
     def __init__(self, strategy: SearchStrategy):
         self.strategy = strategy

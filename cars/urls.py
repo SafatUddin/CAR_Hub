@@ -18,6 +18,10 @@ urlpatterns = [
     path('follow/<int:car_id>/', views.follow_car, name='follow_car'),
     path('update_status/<int:car_id>/', views.update_car_status, name='update_car_status'),
     path('accept_order/<int:order_id>/', views.accept_order, name='accept_order'),
+    path('reject_order/<int:order_id>/', views.reject_order, name='reject_order'),
     path('delete_account/', views.delete_account, name='delete_account'),
     path('mark_all_read/', views.mark_all_read, name='mark_all_read'),
+    path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    path('approve-car/<int:car_id>/', views.approve_car, name='approve_car'),
+    path('reject-car/<int:car_id>/', views.reject_car, name='reject_car'),
 ]

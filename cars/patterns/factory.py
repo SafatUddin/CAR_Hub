@@ -1,13 +1,23 @@
 from abc import ABC, abstractmethod
+
+# Car -> Product
 from cars.models import Car
 
-# Abstract Factory
+# Concrete Products inside models.py 
+#  CAR_TYPES = (
+#      ('sedan', 'Sedan'),
+#      ('suv', 'SUV'),
+#      ('truck', 'Truck'),
+#      ('coupe', 'Coupe'),
+#  )
+
+# Creator 
 class CarFactory(ABC):
     @abstractmethod
     def create_car(self, make, model, year, price, mileage, owner):
         pass
 
-# Concrete Factories
+# Concrete Creators
 class SedanFactory(CarFactory):
     def create_car(self, make, model, year, price, mileage, owner):
         return Car.objects.create(

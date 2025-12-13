@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 {% extends 'cars/base.html' %}
 
 {% block content %}
@@ -32,15 +33,15 @@
             </select>
         </div>
 
-        <label>Mileage (Km)</label>
+        <label>Mileage</label>
         <input type="number" name="mileage" min="0" value="{{ car.mileage }}" required>
 
         <label>Type</label>
         <select name="car_type">
-            <option value="sedan" {% if car.car_type == 'sedan' %}selected{% endif %}>Sedan</option>
-            <option value="suv" {% if car.car_type == 'suv' %}selected{% endif %}>SUV</option>
-            <option value="truck" {% if car.car_type == 'truck' %}selected{% endif %}>Truck</option>
-            <option value="coupe" {% if car.car_type == 'coupe' %}selected{% endif %}>Coupe</option>
+            <option value="sedan" {% if car.car_type == "sedan" %}selected{% endif %}>Sedan</option>
+            <option value="suv" {% if car.car_type == "suv" %}selected{% endif %}>SUV</option>
+            <option value="truck" {% if car.car_type == "truck" %}selected{% endif %}>Truck</option>
+            <option value="coupe" {% if car.car_type == "coupe" %}selected{% endif %}>Coupe</option>
         </select>
 
         <h3>Contact Information</h3>
@@ -53,6 +54,14 @@
         <label>WhatsApp Number</label>
         <input type="text" name="contact_whatsapp" value="{{ car.contact_whatsapp|default:'' }}"
             placeholder="e.g. +8801700000000">
+
+        <h3 style="margin-top: 2rem; margin-bottom: 0.5rem;">Registration Paper</h3>
+        <p style="font-size:0.9rem; color:#94a3b8; margin-bottom:1rem;">
+            <strong>Current Registration Paper:</strong> 
+            <a href="{{ car.registration_paper.url }}" target="_blank" style="color: var(--primary-color); text-decoration: underline;">View Document</a>
+            <br>
+            <em style="color:#f59e0b;">Note: Registration paper cannot be changed after listing.</em>
+        </p>
 
         <label>New Images (Optional)</label>
         <input type="file" name="images" multiple accept="image/*">

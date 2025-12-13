@@ -17,12 +17,16 @@ class Car(models.Model):
     car_type = models.CharField(max_length=20, choices=CAR_TYPES)
     description = models.TextField(blank=True)
     status = models.CharField(max_length=20, default='available') # available, sold
+    approval_status = models.CharField(max_length=20, default='pending') # pending, approved, rejected
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     
     # Contact Info
     contact_email = models.EmailField(blank=True, null=True)
     contact_whatsapp = models.CharField(max_length=20, blank=True, null=True)
+    
+    # Registration Paper (nullable for existing records)
+    registration_paper = models.FileField(upload_to='registration_papers/', blank=True, null=True)
     
     # Observer Pattern: Followers
     followers = models.ManyToManyField(User, related_name='followed_cars', blank=True)

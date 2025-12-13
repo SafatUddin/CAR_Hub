@@ -8,14 +8,33 @@
             style="padding:0.5rem; border-radius:0.5rem; border:none;">
             <option value="brand" {% if request.GET.search_type == 'brand' %}selected{% endif %}>Make</option>
             <option value="model" {% if request.GET.search_type == 'model' %}selected{% endif %}>Model</option>
+            <option value="type" {% if request.GET.search_type == 'type' %}selected{% endif %}>Type</option>
             <option value="price" {% if request.GET.search_type == 'price' %}selected{% endif %}>Price Range</option>
             <option value="mileage" {% if request.GET.search_type == 'mileage' %}selected{% endif %}>Mileage Range
             </option>
+            <option value="year" {% if request.GET.search_type == 'year' %}selected{% endif %}>Year</option>
         </select>
 
         <!-- Text Input (Brand/Model) -->
         <input type="text" name="query" id="textInput" placeholder="Search..." value="{{ request.GET.query }}"
             style="padding:0.5rem; border-radius:0.5rem; border:none; width:400px;">
+
+        <!-- Type Selector -->
+        <select name="query" id="typeSelect" style="padding:0.5rem; border-radius:0.5rem; border:none; width:400px; display:none;" onchange="this.form.submit()">
+            <option value="">Select Type</option>
+            <option value="Sedan" {% if request.GET.query == 'Sedan' %}selected{% endif %}>Sedan</option>
+            <option value="SUV" {% if request.GET.query == 'SUV' %}selected{% endif %}>SUV</option>
+            <option value="Truck" {% if request.GET.query == 'Truck' %}selected{% endif %}>Truck</option>
+            <option value="Coupe" {% if request.GET.query == 'Coupe' %}selected{% endif %}>Coupe</option>
+        </select>
+
+        <!-- Year Selector -->
+        <select name="query" id="yearSelect" style="padding:0.5rem; border-radius:0.5rem; border:none; width:400px; display:none;" onchange="this.form.submit()">
+            <option value="">Select Year</option>
+            {% for year in years %}
+            <option value="{{ year }}" {% if request.GET.query == year|stringformat:"s" %}selected{% endif %}>{{ year }}</option>
+            {% endfor %}
+        </select>
 
         <!-- Range Inputs (Price/Mileage) -->
         <div id="rangeInputs" style="display:none; gap:0.5rem;">
@@ -33,14 +52,20 @@
     function updateSearchInputs() {
         const type = document.getElementById('searchType').value;
         const textInput = document.getElementById('textInput');
+        const typeSelect = document.getElementById('typeSelect');
+        const yearSelect = document.getElementById('yearSelect');
         const rangeInputs = document.getElementById('rangeInputs');
         const minInput = document.getElementById('minInput');
         const maxInput = document.getElementById('maxInput');
 
         if (type === 'price' || type === 'mileage') {
             textInput.style.display = 'none';
+            typeSelect.style.display = 'none';
+            yearSelect.style.display = 'none';
             rangeInputs.style.display = 'flex';
             textInput.disabled = true;
+            typeSelect.disabled = true;
+            yearSelect.disabled = true;
             minInput.disabled = false;
             maxInput.disabled = false;
 
@@ -51,7 +76,7 @@
                 maxInput.placeholder = 'Max Price';
                 minInput.value = "{{ request.GET.min_price|default:'' }}";
                 maxInput.value = "{{ request.GET.max_price|default:'' }}";
-            } else { // type === 'mileage'
+            } else if (type === 'mileage') {
                 minInput.name = 'min_mileage';
                 maxInput.name = 'max_mileage';
                 minInput.placeholder = 'Min Mileage';
@@ -59,10 +84,34 @@
                 minInput.value = "{{ request.GET.min_mileage|default:'' }}";
                 maxInput.value = "{{ request.GET.max_mileage|default:'' }}";
             }
+        } else if (type === 'type') {
+            textInput.style.display = 'none';
+            typeSelect.style.display = 'block';
+            yearSelect.style.display = 'none';
+            rangeInputs.style.display = 'none';
+            textInput.disabled = true;
+            typeSelect.disabled = false;
+            yearSelect.disabled = true;
+            minInput.disabled = true;
+            maxInput.disabled = true;
+        } else if (type === 'year') {
+            textInput.style.display = 'none';
+            typeSelect.style.display = 'none';
+            yearSelect.style.display = 'block';
+            rangeInputs.style.display = 'none';
+            textInput.disabled = true;
+            typeSelect.disabled = true;
+            yearSelect.disabled = false;
+            minInput.disabled = true;
+            maxInput.disabled = true;
         } else {
             textInput.style.display = 'block';
+            typeSelect.style.display = 'none';
+            yearSelect.style.display = 'none';
             rangeInputs.style.display = 'none';
             textInput.disabled = false;
+            typeSelect.disabled = true;
+            yearSelect.disabled = true;
             minInput.disabled = true;
             maxInput.disabled = true;
             // Clear range input values when switching to text input

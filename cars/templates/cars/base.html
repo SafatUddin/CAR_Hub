@@ -17,13 +17,26 @@
     <nav class="glass-nav"
         style="display:flex; justify-content:space-between; align-items:center; padding:0.75rem 2rem;">
         <!-- Left: Logo -->
-        <div class="logo" style="font-size:1.3rem; font-weight:700; color:#5B9FED;">CarHub</div>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <div class="logo" style="font-size:1.3rem; font-weight:700; color:#5B9FED;">CarHub</div>
+            {% if user.is_authenticated and user.is_superuser %}
+            <span style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 0.25rem 0.75rem; border-radius: 0.25rem; font-size: 0.8rem; font-weight: 600;">ADMIN</span>
+            {% endif %}
+        </div>
 
         <!-- Center: Navigation Links -->
         <div style="display:flex; gap:2rem; align-items:center;">
-            <a href="{% url 'home' %}" style="text-decoration:none; color:white; font-weight:500;">Home</a>
             {% if user.is_authenticated %}
+            {% if user.is_superuser %}
+            <a href="{% url 'admin_dashboard' %}" style="text-decoration:none; color:white; font-weight:500;">
+                <i class="fa-solid fa-gauge-high"></i> Admin Dashboard
+            </a>
+            {% else %}
+            <a href="{% url 'home' %}" style="text-decoration:none; color:white; font-weight:500;">Home</a>
             <a href="{% url 'create_car' %}" style="text-decoration:none; color:white; font-weight:500;">List a Car</a>
+            {% endif %}
+            {% else %}
+            <a href="{% url 'home' %}" style="text-decoration:none; color:white; font-weight:500;">Home</a>
             {% endif %}
         </div>
 
@@ -53,10 +66,28 @@
                 {% endif %}
             </a>
 
-            <!-- Profile Icon -->
-            <a href="{% url 'profile' %}" style="color:white; font-size:1.2rem;">
-                <i class="fa-solid fa-user"></i>
-            </a>
+            <!-- Profile Icon with Dropdown -->
+            <div style="position: relative;" class="profile-dropdown">
+                <button onclick="toggleProfileMenu()" style="background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer; padding: 0.5rem;">
+                    <i class="fa-solid fa-user"></i>
+                </button>
+                <div id="profileMenu" style="display: none; position: absolute; right: 0; top: 100%; margin-top: 0.5rem; background: rgba(30, 30, 50, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.5rem; min-width: 200px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); z-index: 1000;">
+                    <a href="{% url 'profile' %}" style="display: block; padding: 0.75rem 1rem; color: white; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                        <i class="fa-solid fa-user"></i> My Profile
+                    </a>
+                    {% if user.is_superuser %}
+                    <a href="{% url 'admin_dashboard' %}" style="display: block; padding: 0.75rem 1rem; color: white; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                        <i class="fa-solid fa-gauge-high"></i> Admin Dashboard
+                    </a>
+                    {% endif %}
+                    <form action="{% url 'logout' %}" method="post" style="margin: 0;">
+                        {% csrf_token %}
+                        <button type="submit" style="width: 100%; text-align: left; background: none; border: none; padding: 0.75rem 1rem; color: white; cursor: pointer; display: block;">
+                            <i class="fa-solid fa-right-from-bracket"></i> Logout
+                        </button>
+                    </form>
+                </div>
+            </div>
             {% else %}
             <a href="{% url 'login' %}" style="text-decoration:none; color:white; font-weight:500;">Login</a>
             <a href="{% url 'signup' %}" style="text-decoration:none; color:white; font-weight:500;">Sign Up</a>
@@ -76,6 +107,28 @@
         {% block content %}
         {% endblock %}
     </div>
+
+    <script>
+        function toggleProfileMenu() {
+            const menu = document.getElementById('profileMenu');
+            if (menu.style.display === 'none' || menu.style.display === '') {
+                menu.style.display = 'block';
+            } else {
+                menu.style.display = 'none';
+            }
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const profileDropdown = document.querySelector('.profile-dropdown');
+            const menu = document.getElementById('profileMenu');
+            if (profileDropdown && !profileDropdown.contains(event.target)) {
+                if (menu) {
+                    menu.style.display = 'none';
+                }
+            }
+        });
+    </script>
 </body>
 
 </html>

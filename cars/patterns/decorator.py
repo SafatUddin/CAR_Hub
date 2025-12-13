@@ -42,16 +42,23 @@ class WarrantyDecorator(CarDecorator):
     def get_description(self):
         return self.car_component.get_description() + " + Extended Warranty"
 
-class InsuranceDecorator(CarDecorator):
-    def get_price(self):
-        return self.car_component.get_price() + 100000.00
-    
-    def get_description(self):
-        return self.car_component.get_description() + " + Insurance"
-
-class PremiumListingDecorator(CarDecorator):
+class DashCamDecorator(CarDecorator):
     def get_price(self):
         return self.car_component.get_price() + 15000.00
     
     def get_description(self):
-        return self.car_component.get_description() + " + Premium Listing"
+        return self.car_component.get_description() + " + Dash Cam"
+
+class SeatCoversDecorator(CarDecorator):
+    def get_price(self):
+        return self.car_component.get_price() + 20000.00
+    
+    def get_description(self):
+        return self.car_component.get_description() + " + Custom Seat Covers"
+
+class WindowTintingDecorator(CarDecorator):
+    def get_price(self):
+        return self.car_component.get_price() + 10000.00
+    
+    def get_description(self):
+        return self.car_component.get_description() + " + Window Tinting"

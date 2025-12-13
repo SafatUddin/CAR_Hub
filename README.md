@@ -1,6 +1,7 @@
 # CAR Hub
 
-A car selling website built with Django and MySQL, demonstrating 6 software design patterns.
+A car selling website built with Django and MySQL, demonstrating 7 software design patterns.
+
 
 ## 🚀 Quick Start (How to Run the Project)
 
@@ -34,16 +35,16 @@ Every time you want to start the project, follow these simple steps:
 2.  **Singleton Design Pattern**: Used for Database Configuration Manager.
     *   Location: `cars/patterns/singleton.py`
     *   Usage: `views.py` -> `home`
-3.  **Observer Pattern**: Used for price drop notifications.
+3.  **Observer Pattern**: Used for notifications.
     *   Location: `cars/patterns/observer.py`
     *   Usage: `views.py` -> `update_price`
 4.  **Strategy Design Pattern**: Used for search and filtering (Price, Brand, Mileage).
     *   Location: `cars/patterns/strategy.py`
     *   Usage: `views.py` -> `home`
-5.  **Decorator Design Pattern**: Used for optional add-ons (Warranty, Insurance, Premium Listing).
+5.  **Decorator Design Pattern**: Used for optional add-ons (Extended Warranty, Added Dash Cam, Custom Seat Covers, Window Tinting).
     *   Location: `cars/patterns/decorator.py`
     *   Usage: `views.py` -> `car_detail`
-6.  **Proxy Design Pattern**: Used for access control (Permissions for deleting/posting cars).
+6.  **Proxy Design Pattern**: Used for access control (Approving car listing).
     *   Location: `cars/patterns/proxy.py`
     *   Usage: `views.py` -> `create_car`, `delete_car`
 7. **Adapter Design Pattern**: Used for converting the currency in price of car and other add-ons
@@ -72,5 +73,11 @@ Every time you want to start the project, follow these simple steps:
     python manage.py runserver
     ```
 
-## Credentials
-*   **Admin User**: `admin` / `admin` (Created during setup)
+## For when faced with caching problem not to use without knowing what it does
+```bash
+cd ~/VS_Code/CAR_Hub
+find . -name "*.pyc" -delete
+find . -name "__pycache__" -type d -exec rm -r {} +
+rm -rf ~/.cache/django*
+python manage.py runserver
+```
