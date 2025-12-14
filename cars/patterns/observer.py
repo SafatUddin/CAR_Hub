@@ -41,10 +41,13 @@ class CarPriceSubject(Subject):
         self.car = car
         
     def change_price(self, new_price):
+        # Capture old price BEFORE saving
         old_price = self.car.price
+        
+        # Update and save the new price
         self.car.price = new_price
         self.car.save()
         
         # Notify all observers through the proper Observer pattern mechanism
-        message = f"The price of {self.car.make} {self.car.model} ({self.car.year}) has changed from ৳{old_price} to ৳{new_price}."
+        message = f"The price of {self.car.make} {self.car.model} ({self.car.year}) has changed from ৳{old_price:.0f} to ৳{new_price:.0f}."
         self.notify(message)

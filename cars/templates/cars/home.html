@@ -127,14 +127,21 @@
 <div class="grid">
     {% for car in cars %}
     <div class="card">
-        {% if car.images.first %}
-        <img src="{{ car.images.first.image.url }}" alt="{{ car.make }} {{ car.model }}"
-            style="width:100%; height:200px; object-fit:cover; border-radius:0.5rem; margin-bottom:1rem;">
-        {% else %}
-        <div
-            style="width:100%; height:200px; background:rgba(0,0,0,0.2); border-radius:0.5rem; margin-bottom:1rem; display:flex; align-items:center; justify-content:center;">
-            No Image</div>
-        {% endif %}
+        <div style="position: relative;">
+            {% if car.images.first %}
+            <img src="{{ car.images.first.image.url }}" alt="{{ car.make }} {{ car.model }}"
+                style="width:100%; height:200px; object-fit:cover; border-radius:0.5rem; margin-bottom:1rem;">
+            {% else %}
+            <div
+                style="width:100%; height:200px; background:rgba(0,0,0,0.2); border-radius:0.5rem; margin-bottom:1rem; display:flex; align-items:center; justify-content:center;">
+                No Image</div>
+            {% endif %}
+            {% if car.status == 'sold' %}
+            <div style="position: absolute; top: 20px; right: -35px; background: #ef4444; color: white; padding: 0.5rem 3rem; font-weight: 700; font-size: 0.9rem; transform: rotate(45deg); box-shadow: 0 4px 8px rgba(0,0,0,0.3); text-transform: uppercase; letter-spacing: 1px;">
+                SOLD
+            </div>
+            {% endif %}
+        </div>
         <h3>{{ car.year }} {{ car.make }} {{ car.model }}</h3>
         <div class="car-price">{{ car.currency_symbol }}{{ car.display_price|floatformat:2 }}</div>
         <div class="car-meta">

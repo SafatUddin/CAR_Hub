@@ -51,19 +51,25 @@ class RealCarService(CarAccessInterface):
     def reject_car(self, car_id, reason=""):
         try:
             car = Car.objects.get(id=car_id)
-            car.approval_status = 'rejected'
-            car.save()
             
-            # Notify owner
+            # Store car details before deletion
+            car_year = car.year
+            car_make = car.make
+            car_model = car.model
+            car_owner = car.owner
+            
+            # Build notification message
             from cars.models import Notification
-            message = f"Your listing '{car.year} {car.make} {car.model}' has been rejected by admin."
-            if reason:
-                message += f" Reason: {reason}"
+            message = f"Your car listing '{car_year} {car_make} {car_model}' has been rejected and removed by admin.\n\nReason: {reason}"
+            
             Notification.objects.create(
-                user=car.owner,
+                user=car_owner,
                 message=message
             )
-            return True, "Car listing rejected."
+            
+            # Delete the car
+            car.delete()
+            return True, "Car listing rejected and seller notified."
         except Car.DoesNotExist:
             return False, "Car not found."
 

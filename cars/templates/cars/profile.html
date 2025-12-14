@@ -21,18 +21,34 @@
         <div class="grid">
             {% for car in my_cars %}
             <div class="card">
-                {% if car.images.first %}
-                <img src="{{ car.images.first.image.url }}" alt="{{ car.make }} {{ car.model }}"
-                    style="width:100%; height:150px; object-fit:cover; border-radius:0.5rem; margin-bottom:1rem;">
-                {% endif %}
+                <div style="position: relative;">
+                    {% if car.images.first %}
+                    <img src="{{ car.images.first.image.url }}" alt="{{ car.make }} {{ car.model }}"
+                        style="width:100%; height:150px; object-fit:cover; border-radius:0.5rem; margin-bottom:1rem;">
+                    {% endif %}
+                    {% if car.status == 'sold' %}
+                    <div style="position: absolute; top: 20px; right: -35px; background: #ef4444; color: white; padding: 0.5rem 3rem; font-weight: 700; font-size: 0.9rem; transform: rotate(45deg); box-shadow: 0 4px 8px rgba(0,0,0,0.3); text-transform: uppercase; letter-spacing: 1px;">
+                        SOLD
+                    </div>
+                    {% endif %}
+                </div>
                 <h4>{{ car.year }} {{ car.make }} {{ car.model }}</h4>
                 <p>Status: <strong>{{ car.status|title }}</strong></p>
                 <p>Price: {{ car.price }} BDT</p>
+                
+                {% if car.status == 'sold' %}
+                <div style="margin-top: 1rem; padding: 1rem; background: rgba(16, 185, 129, 0.1); border-radius: 0.5rem; border: 1px solid #10b981;">
+                    <p style="color: #10b981; margin: 0; font-weight: 600;">
+                        <i class="fa-solid fa-circle-check"></i> You sold this car
+                    </p>
+                </div>
+                {% else %}
                 <div style="margin-top: 1rem; display:flex; gap:0.5rem;">
                     <a href="{% url 'car_detail' car.id %}" class="btn btn-primary" style="font-size:0.9rem;">View</a>
                     <a href="{% url 'update_car' car.id %}" class="btn btn-primary" style="font-size: 0.8rem;">Update
                         Details</a>
                 </div>
+                {% endif %}
             </div>
             {% endfor %}
         </div>
@@ -92,6 +108,98 @@
         </div>
         {% else %}
         <p>No buy requests yet.</p>
+        {% endif %}
+    </div>
+
+    <!-- My Purchase Requests -->
+    <div style="margin-bottom: 2rem;">
+        <h3>My Purchase Requests</h3>
+        {% if my_purchase_requests %}
+        <div class="grid">
+            {% for order in my_purchase_requests %}
+            <div class="card" style="border-left: 4px solid #3b82f6;">
+                <h4>Request for: {{ order.car.year }} {{ order.car.make }} {{ order.car.model }}</h4>
+                <p>Seller: <strong>{{ order.car.owner.username }}</strong></p>
+                <p>Price: ৳{{ order.car.price|floatformat:0 }}</p>
+                <p>Status: 
+                    {% if order.status == 'pending' %}
+                    <span style="color: #f59e0b;">{{ order.status|title }}</span>
+                    {% elif order.status == 'accepted' %}
+                    <span style="color: #10b981;">{{ order.status|title }}</span>
+                    {% else %}
+                    <span style="color: #ef4444;">{{ order.status|title }}</span>
+                    {% endif %}
+                </p>
+                <p style="font-size:0.8rem; color:#ccc;">{{ order.created_at|date:"M d, Y" }}</p>
+                <a href="{% url 'car_detail' order.car.id %}" class="btn btn-primary" style="font-size:0.9rem; margin-top:0.5rem;">View Car</a>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p>You haven't made any purchase requests yet.</p>
+        {% endif %}
+    </div>
+
+    <!-- Cars Sold -->
+    <div style="margin-bottom: 2rem;">
+        <h3>Cars I've Sold</h3>
+        {% if sold_cars %}
+        <div class="grid">
+            {% for order in sold_cars %}
+            <div class="card" style="border-left: 4px solid #10b981;">
+                <div style="position: relative;">
+                    {% if order.car.images.first %}
+                    <img src="{{ order.car.images.first.image.url }}" alt="{{ order.car.make }} {{ order.car.model }}"
+                        style="width:100%; height:150px; object-fit:cover; border-radius:0.5rem; margin-bottom:1rem;">
+                    {% endif %}
+                    <div style="position: absolute; top: 20px; right: -35px; background: #ef4444; color: white; padding: 0.5rem 3rem; font-weight: 700; font-size: 0.9rem; transform: rotate(45deg); box-shadow: 0 4px 8px rgba(0,0,0,0.3); text-transform: uppercase; letter-spacing: 1px;">
+                        SOLD
+                    </div>
+                </div>
+                <h4>{{ order.car.year }} {{ order.car.make }} {{ order.car.model }}</h4>
+                <p>Price: ৳{{ order.car.price|floatformat:0 }}</p>
+                <p style="font-size:0.9rem; color:#94a3b8;">Sold to: 
+                    <a href="{% url 'seller_profile' order.buyer.id %}" style="color: #10b981; text-decoration: none; font-weight: 600;">
+                        {{ order.buyer.first_name }} {{ order.buyer.last_name }}
+                    </a>
+                </p>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p>You haven't sold any cars yet.</p>
+        {% endif %}
+    </div>
+
+    <!-- Cars Bought -->
+    <div style="margin-bottom: 2rem;">
+        <h3>Cars I've Bought</h3>
+        {% if bought_cars %}
+        <div class="grid">
+            {% for order in bought_cars %}
+            <div class="card" style="border-left: 4px solid #3b82f6;">
+                <div style="position: relative;">
+                    {% if order.car.images.first %}
+                    <img src="{{ order.car.images.first.image.url }}" alt="{{ order.car.make }} {{ order.car.model }}"
+                        style="width:100%; height:150px; object-fit:cover; border-radius:0.5rem; margin-bottom:1rem;">
+                    {% endif %}
+                    <div style="position: absolute; top: 20px; right: -35px; background: #ef4444; color: white; padding: 0.5rem 3rem; font-weight: 700; font-size: 0.9rem; transform: rotate(45deg); box-shadow: 0 4px 8px rgba(0,0,0,0.3); text-transform: uppercase; letter-spacing: 1px;">
+                        SOLD
+                    </div>
+                </div>
+                <h4>{{ order.car.year }} {{ order.car.make }} {{ order.car.model }}</h4>
+                <p>Price: ৳{{ order.car.price|floatformat:0 }}</p>
+                <p style="font-size:0.9rem; color:#94a3b8;">Purchased from: 
+                    <a href="{% url 'seller_profile' order.car.owner.id %}" style="color: #3b82f6; text-decoration: none; font-weight: 600;">
+                        {{ order.car.owner.first_name }} {{ order.car.owner.last_name }}
+                    </a>
+                </p>
+                <a href="{% url 'car_detail' order.car.id %}" class="btn btn-primary" style="font-size:0.9rem; margin-top:0.5rem;">View Details</a>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p>You haven't bought any cars yet.</p>
         {% endif %}
     </div>
     {% endif %}

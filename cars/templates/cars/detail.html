@@ -3,12 +3,32 @@
 
 {% block content %}
 <div class="card" style="max-width: 800px; margin: 0 auto;">
-    {% if car.images.first %}
-    <img src="{{ car.images.first.image.url }}" alt="{{ car.make }} {{ car.model }}"
-        style="width:100%; height:400px; object-fit:cover; border-radius:0.5rem; margin-bottom:1rem;">
-    {% endif %}
+    <div style="position: relative;">
+        {% if car.images.first %}
+        <img src="{{ car.images.first.image.url }}" alt="{{ car.make }} {{ car.model }}"
+            style="width:100%; height:400px; object-fit:cover; border-radius:0.5rem; margin-bottom:1rem;">
+        {% endif %}
+        {% if car.status == 'sold' %}
+        <div style="position: absolute; top: 30px; right: -45px; background: #ef4444; color: white; padding: 0.6rem 3.5rem; font-weight: 700; font-size: 1rem; transform: rotate(45deg); box-shadow: 0 4px 8px rgba(0,0,0,0.3); text-transform: uppercase; letter-spacing: 1px;">
+            SOLD
+        </div>
+        {% endif %}
+    </div>
     <h1>{{ car.year }} {{ car.make }} {{ car.model }}</h1>
     <div class="car-price">{{ currency_symbol }}{{ final_price|floatformat:2 }}</div>
+
+    <div style="margin-bottom: 1.5rem; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 0.5rem; border: 1px solid var(--glass-border);">
+        <p style="margin: 0; color: #94a3b8; font-size: 0.9rem;">Seller</p>
+        <a href="{% url 'seller_profile' car.owner.id %}" style="display: flex; align-items: center; gap: 0.75rem; text-decoration: none; color: white; margin-top: 0.5rem;">
+            <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 1.2rem;">
+                {{ car.owner.first_name.0|upper }}{{ car.owner.last_name.0|upper }}
+            </div>
+            <div>
+                <p style="margin: 0; font-weight: 600; font-size: 1rem;">{{ car.owner.first_name }} {{ car.owner.last_name }}</p>
+                <p style="margin: 0; color: #94a3b8; font-size: 0.85rem;">@{{ car.owner.username }}</p>
+            </div>
+        </a>
+    </div>
 
     <div style="margin-bottom: 2rem;">
         <p><strong>Type:</strong> {{ car.get_car_type_display }}</p>
@@ -93,10 +113,7 @@
                     <button type="submit" class="btn" style="background:#10b981;">Approve Listing</button>
                 </form>
                 {% if car.approval_status == 'pending' %}
-                <form action="{% url 'reject_car' car.id %}" method="post" style="margin:0;" onsubmit="return confirm('Are you sure you want to reject this listing?');">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-danger">Reject Listing</button>
-                </form>
+                <button type="button" class="btn btn-danger" onclick="document.getElementById('rejectModal').style.display='flex'">Reject Listing</button>
                 {% endif %}
             </div>
             {% endif %}
@@ -106,6 +123,14 @@
         
         {% elif user == car.owner %}
         <!-- Owner View -->
+        {% if car.status == 'sold' %}
+        <div style="padding: 1.5rem; background: rgba(16, 185, 129, 0.1); border-radius: 0.5rem; border: 2px solid #10b981; text-align: center;">
+            <p style="color: #10b981; margin: 0; font-size: 1.2rem; font-weight: 600;">
+                <i class="fa-solid fa-circle-check"></i> You sold this car
+            </p>
+            <p style="color: #94a3b8; margin-top: 0.5rem; font-size: 0.9rem;">This listing can no longer be edited</p>
+        </div>
+        {% else %}
         <div style="display:flex; gap:0.5rem; align-items:center;">
             <a href="{% url 'update_car' car.id %}" class="btn btn-primary">Update Details</a>
 
@@ -123,8 +148,29 @@
             <a href="{% url 'delete_car' car.id %}" class="btn btn-danger"
                 onclick="return confirm('Are you sure?')">Delete Car</a>
         </div>
+        {% endif %}
         {% else %}
         <!-- Buyer View -->
+        {% if car.status == 'sold' %}
+            <!-- Check if this user bought the car -->
+            {% with completed_order=car.orders.all|first %}
+                {% if completed_order.status == 'completed' and completed_order.buyer == user %}
+                <div style="padding: 1.5rem; background: rgba(59, 130, 246, 0.1); border-radius: 0.5rem; border: 2px solid #3b82f6; text-align: center;">
+                    <p style="color: #3b82f6; margin: 0; font-size: 1.2rem; font-weight: 600;">
+                        <i class="fa-solid fa-circle-check"></i> You bought this car
+                    </p>
+                    <p style="color: #94a3b8; margin-top: 0.5rem; font-size: 0.9rem;">Congratulations on your purchase!</p>
+                </div>
+                {% else %}
+                <div style="padding: 1.5rem; background: rgba(100, 116, 139, 0.1); border-radius: 0.5rem; border: 2px solid #64748b; text-align: center;">
+                    <p style="color: #94a3b8; margin: 0; font-size: 1.2rem; font-weight: 600;">
+                        <i class="fa-solid fa-circle-xmark"></i> This car is sold
+                    </p>
+                    <p style="color: #94a3b8; margin-top: 0.5rem; font-size: 0.9rem;">This listing is no longer available</p>
+                </div>
+                {% endif %}
+            {% endwith %}
+        {% else %}
         <div style="width:100%; margin-bottom:1rem;">
             <h3 style="margin-bottom: 0.5rem; font-size: 1.2rem;">Seller Contact</h3>
             <div style="display:flex; gap:1rem;">
@@ -149,12 +195,9 @@
                 {% if user in car.followers.all %}Unfollow Car{% else %}Follow Car{% endif %}
             </a>
 
-            {% if car.status == 'available' %}
             <a href="{% url 'buy_car' car.id %}" class="btn btn-primary" style="background:#10b981;">Buy</a>
-            {% else %}
-            <button class="btn" disabled style="background:#64748b; cursor:not-allowed;">Sold Out</button>
-            {% endif %}
         </div>
+        {% endif %}
         {% endif %}
 
         {% else %}
@@ -162,4 +205,26 @@
         {% endif %}
     </div>
 </div>
+
+<!-- Reject Modal -->
+<div id="rejectModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); align-items: center; justify-content: center; z-index: 1000;">
+    <div style="background: var(--card-bg); padding: 2rem; border-radius: 1rem; max-width: 500px; width: 90%; border: 1px solid var(--glass-border);">
+        <h3 style="margin-bottom: 1rem;">Reject Car Listing</h3>
+        <p style="margin-bottom: 1.5rem; color: #94a3b8;">Please provide a reason for rejecting this car listing. The seller will be notified.</p>
+        
+        <form action="{% url 'reject_car' car.id %}" method="post">
+            {% csrf_token %}
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Rejection Reason *</label>
+            <textarea name="reason" required 
+                style="width: 100%; min-height: 120px; padding: 0.75rem; border-radius: 0.5rem; border: 1px solid var(--glass-border); background: rgba(255,255,255,0.05); color: white; margin-bottom: 1.5rem; font-family: inherit;" 
+                placeholder="Example: Incomplete documentation, suspicious pricing, unclear images, etc."></textarea>
+            
+            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                <button type="button" class="btn" style="background: #64748b;" onclick="document.getElementById('rejectModal').style.display='none'">Cancel</button>
+                <button type="submit" class="btn btn-danger">Reject Listing</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 {% endblock %}

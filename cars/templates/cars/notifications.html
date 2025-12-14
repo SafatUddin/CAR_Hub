@@ -17,9 +17,9 @@
     <div style="display:flex; flex-direction:column; gap:1rem;">
         {% for notif in notifications %}
         <div class="card">
-            <div style="display:flex; justify-content:space-between; align-items:start;">
+            <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom: 1rem;">
                 <div style="flex:1;">
-                    <p style="margin:0;">{{ notif.message }}</p>
+                    <p style="margin:0; white-space: pre-line;">{{ notif.message }}</p>
                     <small style="color:#94a3b8;">{{ notif.created_at|timesince }} ago</small>
                 </div>
                 {% if not notif.is_read %}
@@ -29,6 +29,26 @@
                 </span>
                 {% endif %}
             </div>
+            
+            {% if 'rejected and removed by admin' in notif.message %}
+            <div style="padding-top: 1rem; border-top: 1px solid var(--glass-border);">
+                <p style="margin: 0 0 0.5rem 0; font-size: 0.9rem; font-weight: 600; color: #94a3b8;">Contact Admin:</p>
+                <div style="display: flex; gap: 1rem;">
+                    {% if admin_email %}
+                    <a href="mailto:{{ admin_email }}" class="btn"
+                        style="background:white; color:black; display:flex; align-items:center; gap:0.5rem; font-size:0.9rem;">
+                        <i class="fa-solid fa-envelope"></i> Email Admin
+                    </a>
+                    {% endif %}
+                    {% if admin_whatsapp %}
+                    <a href="https://wa.me/{{ admin_whatsapp }}" target="_blank" class="btn"
+                        style="background:white; color:black; display:flex; align-items:center; gap:0.5rem; font-size:0.9rem;">
+                        <i class="fa-brands fa-whatsapp"></i> WhatsApp Admin
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
         </div>
         {% empty %}
         <p style="text-align:center; color:#94a3b8; padding:2rem;">No notifications.</p>

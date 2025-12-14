@@ -475,6 +475,11 @@ def update_car(request, car_id):
         messages.error(request, "You are not authorized to edit this car.")
         return redirect('car_detail', car_id=car.id)
     
+    # Prevent editing if car is sold
+    if car.status == 'sold':
+        messages.error(request, "You cannot edit a car that has been sold.")
+        return redirect('profile')
+    
     if request.method == 'POST':
         # Get fields
         make = request.POST.get('make')
@@ -539,7 +544,6 @@ def update_car(request, car_id):
         car.make = make
         car.model = model
         car.year = year
-        car.price = new_price_bdt
         car.mileage = mileage
         car.car_type = car_type
         car.contact_email = contact_email
@@ -547,15 +551,22 @@ def update_car(request, car_id):
         
         # Note: Registration paper cannot be changed after listing
         
+        # Save all fields except handle price change through Observer pattern
+        if not price_changed:
+            car.price = new_price_bdt
+        
         car.save()
         
         # Add new images
         for image in images:
             CarImage.objects.create(car=car, image=image)
             
-        # Notify followers if price changed
+        # Notify followers if price changed (BEFORE updating price in DB)
         if price_changed:
-            # Create subject with the car
+            # Reload car from database to get the current saved price
+            car.refresh_from_db()
+            
+            # Create subject with the car (car has old price from DB)
             subject = CarPriceSubject(car)
             
             # Attach all followers as observers (proper Observer pattern)
@@ -578,10 +589,48 @@ def update_car(request, car_id):
 def profile(request):
     my_cars = Car.objects.filter(owner=request.user).order_by('-created_at')
     
-    # Get incoming buy requests for user's cars
+    # Get incoming buy requests for user's cars (as seller)
     buy_requests = Order.objects.filter(car__owner=request.user).order_by('-created_at')
     
-    return render(request, 'cars/profile.html', {'my_cars': my_cars, 'buy_requests': buy_requests})
+    # Get buy requests made by this user (as buyer)
+    my_purchase_requests = Order.objects.filter(buyer=request.user).order_by('-created_at')
+    
+    # Get cars sold by this user
+    sold_cars = Order.objects.filter(car__owner=request.user, status='completed').order_by('-created_at')
+    
+    # Get cars bought by this user
+    bought_cars = Order.objects.filter(buyer=request.user, status='completed').order_by('-created_at')
+    
+    return render(request, 'cars/profile.html', {
+        'my_cars': my_cars, 
+        'buy_requests': buy_requests,
+        'my_purchase_requests': my_purchase_requests,
+        'sold_cars': sold_cars,
+        'bought_cars': bought_cars
+    })
+
+def seller_profile(request, user_id):
+    seller = get_object_or_404(User, id=user_id)
+    
+    # Get seller's cars (only approved ones for non-owners)
+    if request.user == seller or (request.user.is_authenticated and request.user.is_superuser):
+        seller_cars = Car.objects.filter(owner=seller).order_by('-created_at')
+    else:
+        seller_cars = Car.objects.filter(owner=seller, approval_status='approved').order_by('-created_at')
+    
+    # Get statistics
+    total_listings = seller_cars.count()
+    sold_count = seller_cars.filter(status='sold').count()
+    available_count = seller_cars.filter(status='available').count()
+    
+    return render(request, 'cars/seller_profile.html', {
+        'seller': seller,
+        'seller_cars': seller_cars,
+        'total_listings': total_listings,
+        'sold_count': sold_count,
+        'available_count': available_count,
+    })
+
 
 @login_required
 def edit_profile(request):
@@ -627,9 +676,17 @@ def notifications(request):
         return redirect('login')
     notifs = Notification.objects.filter(user=request.user).order_by('-created_at')
     unread_count = notifs.filter(is_read=False).count()
+    
+    # Get admin contact info
+    admin_user = User.objects.filter(is_superuser=True).first()
+    admin_email = admin_user.email if admin_user else None
+    admin_whatsapp = admin_user.profile.whatsapp_number if admin_user and hasattr(admin_user, 'profile') else None
+    
     return render(request, 'cars/notifications.html', {
         'notifications': notifs,
-        'unread_count': unread_count
+        'unread_count': unread_count,
+        'admin_email': admin_email,
+        'admin_whatsapp': admin_whatsapp
     })
 
 @login_required
@@ -709,4 +766,4 @@ def reject_car(request, car_id):
     else:
         messages.error(request, msg)
     
-    return redirect('car_detail', car_id=car_id)
+    return redirect('admin_dashboard')
