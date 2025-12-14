@@ -716,7 +716,7 @@ def admin_dashboard(request):
     
     # Get statistics
     from django.db.models import Count
-    total_users = User.objects.count()
+    total_users = User.objects.filter(is_superuser=False).count()
     total_cars = Car.objects.count()
     available_cars = Car.objects.filter(status='available').count()
     sold_cars = Car.objects.filter(status='sold').count()

@@ -45,7 +45,7 @@
         {% endif %}
     </div>
 
-    {% if user.is_authenticated and user != car.owner and not user.is_superuser %}
+    {% if user.is_authenticated and user != car.owner and not user.is_superuser and car.status != 'sold' %}
     <h3>Optional Features</h3>
     <form method="get" action="">
         <label style="display:block; margin-bottom:0.5rem;">

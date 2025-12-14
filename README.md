@@ -72,6 +72,12 @@ Every time you want to start the project, follow these simple steps:
     ```bash
     python manage.py runserver
     ```
+## Superuser/Amin creation
+
+    ```bash
+    python3 manage.py createsuperuser
+    ```
+
 
 ## For when faced with caching problem not to use without knowing what it does
 ```bash
