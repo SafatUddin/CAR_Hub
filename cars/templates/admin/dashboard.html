@@ -1,0 +1,118 @@
+{% extends 'cars/base.html' %}
+
+{% block content %}
+<div style="max-width: 1400px; margin: 0 auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h1>🛡️ Admin Dashboard</h1>
+        <a href="{% url 'home' %}" class="btn btn-secondary">Back to Site</a>
+    </div>
+
+    <!-- Quick Stats -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1. 5rem; margin-bottom: 2rem;">
+        <div class="card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <h3 style="margin: 0 0 0.5rem 0; color: white;">Total Users</h3>
+            <p style="font-size: 2.5rem; font-weight: 700; margin: 0; color: white;">{{ analytics.total_users }}</p>
+            <small style="color: rgba(255,255,255,0.8);">+{{ analytics.new_users_week }} this week</small>
+        </div>
+
+        <div class="card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+            <h3 style="margin: 0 0 0.5rem 0; color: white;">Total Cars</h3>
+            <p style="font-size: 2.5rem; font-weight: 700; margin: 0; color: white;">{{ analytics. total_cars }}</p>
+            <small style="color: rgba(255,255,255,0.8);">+{{ analytics.new_cars_week }} this week</small>
+        </div>
+
+        <div class="card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+            <h3 style="margin: 0 0 0.5rem 0; color: white;">Total Orders</h3>
+            <p style="font-size: 2.5rem; font-weight: 700; margin: 0; color: white;">{{ analytics. total_orders }}</p>
+            <small style="color: rgba(255,255,255,0.8);">+{{ analytics.new_orders_week }} this week</small>
+        </div>
+
+        <div class="card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+            <h3 style="margin: 0 0 0.5rem 0; color: white;">Avg Car Price</h3>
+            <p style="font-size: 2.5rem; font-weight: 700; margin: 0; color: white;">৳{{ analytics.avg_price|floatformat: 0 }}</p>
+            <small style="color: rgba(255,255,255,0.8);">Platform average</small>
+        </div>
+    </div>
+
+    <!-- Details Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+        <div class="card">
+            <h3>📊 Car Statistics</h3>
+            <div style="margin-top: 1rem;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span>Available: </span>
+                    <strong style="color: #10b981;">{{ analytics.available_cars }}</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span>Sold:</span>
+                    <strong style="color: #ef4444;">{{ analytics.sold_cars }}</strong>
+                </div>
+                <div style="display:  flex; justify-content: space-between;">
+                    <span>Total:</span>
+                    <strong>{{ analytics.total_cars }}</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>📦 Order Statistics</h3>
+            <div style="margin-top: 1rem;">
+                <div style="display: flex; justify-content:  space-between; margin-bottom:  0.5rem;">
+                    <span>Pending:</span>
+                    <strong style="color: #f59e0b;">{{ analytics. pending_orders }}</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span>Completed:</span>
+                    <strong style="color: #10b981;">{{ analytics.completed_orders }}</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span>Total:</span>
+                    <strong>{{ analytics.total_orders }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Sellers -->
+    <div class="card">
+        <h3>🏆 Top Sellers</h3>
+        <table style="width: 100%; margin-top: 1rem; border-collapse: collapse;">
+            <thead>
+                <tr style="border-bottom: 2px solid var(--glass-border);">
+                    <th style="text-align: left; padding: 0.75rem;">User</th>
+                    <th style="text-align: left; padding: 0.75rem;">Email</th>
+                    <th style="text-align: center; padding: 0.75rem;">Cars Listed</th>
+                    <th style="text-align: center; padding: 0.75rem;">Joined</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for seller in analytics.top_sellers %}
+                <tr style="border-bottom: 1px solid var(--glass-border);">
+                    <td style="padding: 0.75rem;">{{ seller.username }}</td>
+                    <td style="padding: 0.75rem;">{{ seller.email }}</td>
+                    <td style="text-align: center; padding: 0.75rem;">
+                        <span style="background: #3b82f6; color: white; padding: 0.25rem 0.75rem; border-radius: 1rem; font-weight: 600;">
+                            {{ seller.cars_count }}
+                        </span>
+                    </td>
+                    <td style="text-align:  center; padding: 0.75rem;">{{ seller.date_joined|date:"M d, Y" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Quick Links -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top:  2rem;">
+        <a href="{% url 'admin_users' %}" class="btn btn-primary" style="text-align: center;">
+            👥 Manage Users
+        </a>
+        <a href="{% url 'admin_cars' %}" class="btn btn-primary" style="text-align: center;">
+            🚗 Manage Cars
+        </a>
+        <a href="{% url 'admin_orders' %}" class="btn btn-primary" style="text-align: center;">
+            📦 Manage Orders
+        </a>
+    </div>
+</div>
+{% endblock %}
