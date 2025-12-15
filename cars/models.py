@@ -15,7 +15,6 @@ class Car(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     mileage = models.IntegerField()
     car_type = models.CharField(max_length=20, choices=CAR_TYPES)
-    description = models.TextField(blank=True)
     status = models.CharField(max_length=20, default='available') # available, sold
     approval_status = models.CharField(max_length=20, default='pending') # pending, approved, rejected
     owner = models.ForeignKey(User, on_delete=models.CASCADE)

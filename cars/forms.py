@@ -95,10 +95,8 @@ class SignUpForm(UserCreationForm):
 
     def save(self, commit=True):
         user = super().save(commit=False)
-        # Split name into first and last name
-        name_parts = self.cleaned_data['name'].strip().split(' ', 1)
-        user.first_name = name_parts[0]
-        user.last_name = name_parts[1] if len(name_parts) > 1 else ''
+        # Use full name as first_name
+        user.first_name = self.cleaned_data['name'].strip()
         user.email = self.cleaned_data['email']
         
         # Generate unique username from name
@@ -124,9 +122,8 @@ class EditProfileForm(forms.Form):
         self.instance = kwargs.pop('instance', None)
         super().__init__(*args, **kwargs)
         if self.instance:
-            # Combine first and last name
-            full_name = f"{self.instance.first_name} {self.instance.last_name}".strip()
-            self.fields['name'].initial = full_name
+            # Use first_name as full name
+            self.fields['name'].initial = self.instance.first_name
             self.fields['email'].initial = self.instance.email
             if hasattr(self.instance, 'profile'):
                 self.fields['whatsapp_number'].initial = self.instance.profile.whatsapp_number
@@ -161,10 +158,8 @@ class EditProfileForm(forms.Form):
         if not self.instance:
             return None
         
-        # Split name into first and last name
-        name_parts = self.cleaned_data['name'].strip().split(' ', 1)
-        self.instance.first_name = name_parts[0]
-        self.instance.last_name = name_parts[1] if len(name_parts) > 1 else ''
+        # Use full name as first_name
+        self.instance.first_name = self.cleaned_data['name'].strip()
         self.instance.email = self.cleaned_data['email']
         
         if commit:

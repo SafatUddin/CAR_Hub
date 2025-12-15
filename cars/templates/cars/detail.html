@@ -21,10 +21,10 @@
         <p style="margin: 0; color: #94a3b8; font-size: 0.9rem;">Seller</p>
         <a href="{% url 'seller_profile' car.owner.id %}" style="display: flex; align-items: center; gap: 0.75rem; text-decoration: none; color: white; margin-top: 0.5rem;">
             <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 1.2rem;">
-                {{ car.owner.first_name.0|upper }}{{ car.owner.last_name.0|upper }}
+                {{ car.owner.first_name.0|upper }}
             </div>
             <div>
-                <p style="margin: 0; font-weight: 600; font-size: 1rem;">{{ car.owner.first_name }} {{ car.owner.last_name }}</p>
+                <p style="margin: 0; font-weight: 600; font-size: 1rem;">{{ car.owner.first_name }}</p>
                 <p style="margin: 0; color: #94a3b8; font-size: 0.85rem;">@{{ car.owner.username }}</p>
             </div>
         </a>
@@ -34,7 +34,6 @@
         <p><strong>Type:</strong> {{ car.get_car_type_display }}</p>
         <p><strong>Mileage:</strong> {{ car.mileage }}</p>
         <p><strong>Status:</strong> {{ car.status }}</p>
-        <p><strong>Description:</strong> {{ description }}</p>
         {% if car.registration_paper %}
         <p><strong>Registration Paper:</strong> 
             <a href="{{ car.registration_paper.url }}" target="_blank" 

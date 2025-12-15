@@ -50,7 +50,7 @@
                 <tbody>
                     {% for user_data in recent_users %}
                     <tr style="border-bottom: 1px solid var(--glass-border);">
-                        <td style="padding: 1rem;">{{ user_data.user.first_name }} {{ user_data.user.last_name }}</td>
+                        <td style="padding: 1rem;">{{ user_data.user.first_name }}</td>
                         <td style="padding: 1rem;">{{ user_data.user.email }}</td>
                         <td style="padding: 1rem;">{{ user_data.user.username }}</td>
                         <td style="padding: 1rem;">{{ user_data.user.date_joined|date:"M d, Y" }}</td>

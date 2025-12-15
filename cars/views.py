@@ -347,7 +347,6 @@ def car_detail(request, car_id):
         car_component = WindowTintingDecorator(car_component)
         
     final_price_bdt = car_component.get_price()
-    description = car_component.get_description()
     
     # Currency Handling
     currency = request.GET.get('currency', request.session.get('currency', 'BDT'))
@@ -369,7 +368,6 @@ def car_detail(request, car_id):
         'final_price': display_price,
         'currency_symbol': currency_symbol,
         'current_currency': currency,
-        'description': description,
         'warranty_price': warranty_price,
         'dashcam_price': dashcam_price,
         'seatcovers_price': seatcovers_price,

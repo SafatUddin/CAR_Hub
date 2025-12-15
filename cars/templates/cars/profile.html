@@ -5,7 +5,7 @@
 <div class="card" style="max-width: 800px; margin: 0 auto;">
     <h2>My Profile</h2>
     <div style="margin-bottom: 2rem;">
-        <p><strong>Name:</strong> {{ user.first_name }} {{ user.last_name }}</p>
+        <p><strong>Name:</strong> {{ user.first_name }}</p>
         <p><strong>Email:</strong> {{ user.email }}</p>
         {% if user.profile.whatsapp_number %}
         <p><strong>WhatsApp:</strong> {{ user.profile.whatsapp_number }}</p>
@@ -200,7 +200,7 @@
                 
                 <p style="font-size:0.9rem; color:#94a3b8;">Sold to: 
                     <a href="{% url 'seller_profile' order.buyer.id %}" style="color: #10b981; text-decoration: none; font-weight: 600;">
-                        {{ order.buyer.first_name }} {{ order.buyer.last_name }}
+                        {{ order.buyer.first_name }}
                     </a>
                 </p>
             </div>
@@ -244,7 +244,7 @@
                 
                 <p style="font-size:0.9rem; color:#94a3b8;">Purchased from: 
                     <a href="{% url 'seller_profile' order.car.owner.id %}" style="color: #3b82f6; text-decoration: none; font-weight: 600;">
-                        {{ order.car.owner.first_name }} {{ order.car.owner.last_name }}
+                        {{ order.car.owner.first_name }}
                     </a>
                 </p>
                 <a href="{% url 'car_detail' order.car.id %}" class="btn btn-primary" style="font-size:0.9rem; margin-top:0.5rem;">View Details</a>

@@ -6,10 +6,10 @@
     <!-- Seller Info Header -->
     <div style="display: flex; align-items: center; gap: 1.5rem; padding: 2rem; background: rgba(255,255,255,0.05); border-radius: 0.5rem; margin-bottom: 2rem;">
         <div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 2rem;">
-            {{ seller.first_name.0|upper }}{{ seller.last_name.0|upper }}
+            {{ seller.first_name.0|upper }}
         </div>
         <div style="flex: 1;">
-            <h2 style="margin: 0 0 0.5rem 0;">{{ seller.first_name }} {{ seller.last_name }}</h2>
+            <h2 style="margin: 0 0 0.5rem 0;">{{ seller.first_name }}</h2>
             <p style="margin: 0; color: #94a3b8; font-size: 1rem;">@{{ seller.username }}</p>
             <p style="margin: 0.5rem 0 0 0; color: #94a3b8; font-size: 0.9rem;">
                 <i class="fa-solid fa-calendar"></i> Member since {{ seller.date_joined|date:"F Y" }}

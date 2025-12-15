@@ -19,7 +19,6 @@ class Command(BaseCommand):
                 user.is_staff = True
                 user.email = email
                 user.first_name = 'Admin'
-                user.last_name = 'User'
                 user.save()
                 self.stdout.write(self.style.SUCCESS(f'Admin user "{username}" updated successfully!'))
             else:
@@ -28,8 +27,7 @@ class Command(BaseCommand):
                     username=username,
                     email=email,
                     password=password,
-                    first_name='Admin',
-                    last_name='User'
+                    first_name='Admin'
                 )
                 self.stdout.write(self.style.SUCCESS(f'Admin user "{username}" created successfully!'))
             
