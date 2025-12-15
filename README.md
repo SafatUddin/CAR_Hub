@@ -2,10 +2,36 @@
 
 A car selling website built with Django and MySQL, demonstrating 7 software design patterns.
 
+## Setup
 
-## 🚀 Quick Start (How to Run the Project)
+1.  Install dependencies:
+    ```bash
+    pip install django mysqlclient
+    ```
+2.  Configure Database:
+    *   The project is configured to use SQLite by default for development ease.
+    *   To use MySQL, ensure you have a database named `car_hub_db` and set the `USE_MYSQL=True` environment variable, or edit `car_hub/settings.py`.
+3.  Run Migrations:
+    ```bash
+    python manage.py migrate
+    ```
+4.  Create Superuser (Admin):
+    ```bash
+    python manage.py createsuperuser
+    ```
+5.  Run Server:
+    ```bash
+    python manage.py runserver
+    ```
+6. Superuser/Admin creation
+    ```bash
+    python3 manage.py createsuperuser
+    ```
+***
 
-Every time you want to start the project, follow these simple steps:
+## Quick Start (How to Run the Project)
+
+To start the project, follow these simple steps:
 
 1. **Navigate to the project directory:**
    ```bash
@@ -25,7 +51,7 @@ Every time you want to start the project, follow these simple steps:
 4. **Stop the server:**
    - Press `CTRL + C` in the terminal
 
----
+***
 
 ## Design Patterns Implemented
 
@@ -50,40 +76,3 @@ Every time you want to start the project, follow these simple steps:
 7. **Adapter Design Pattern**: Used for converting the currency in price of car and other add-ons
     *   Location: `cars/patterns/adapter.py`
     *   Usage: `views.py` -> `car_detail`
-
-## Setup
-
-1.  Install dependencies:
-    ```bash
-    pip install django mysqlclient
-    ```
-2.  Configure Database:
-    *   The project is configured to use SQLite by default for development ease.
-    *   To use MySQL, ensure you have a database named `car_hub_db` and set the `USE_MYSQL=True` environment variable, or edit `car_hub/settings.py`.
-3.  Run Migrations:
-    ```bash
-    python manage.py migrate
-    ```
-4.  Create Superuser (Admin):
-    ```bash
-    python manage.py createsuperuser
-    ```
-5.  Run Server:
-    ```bash
-    python manage.py runserver
-    ```
-## Superuser/Amin creation
-
-    ```bash
-    python3 manage.py createsuperuser
-    ```
-
-
-## For when faced with caching problem not to use without knowing what it does
-```bash
-cd ~/VS_Code/CAR_Hub
-find . -name "*.pyc" -delete
-find . -name "__pycache__" -type d -exec rm -r {} +
-rm -rf ~/.cache/django*
-python manage.py runserver
-```
