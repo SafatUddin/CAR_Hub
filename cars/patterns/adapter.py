@@ -1,17 +1,17 @@
-# Target Interface - What our application expects
+# target interface
 class CurrencyConverter:
 
-    def convert_to_bdt(self, amount, currency):
+    def convert_to_bdt(self, amount, currency): #to be implemented by adapter
         """Convert any currency to BDT"""
-        raise NotImplementedError
+        raise NotImplementedError #make sure derived class implements this method
     
-    def convert_from_bdt(self, amount_bdt, target_currency):
+    def convert_from_bdt(self, amount_bdt, target_currency): #to be implemented by adapter
         """Convert BDT to any currency"""
-        raise NotImplementedError
+        raise NotImplementedError #make sure derived class implements this method
     
-    def get_currency_symbol(self, currency):
+    def get_currency_symbol(self, currency): #to be implemented by adapter
         """Get the symbol for a currency"""
-        raise NotImplementedError
+        raise NotImplementedError #make sure derived class implements this method
 
 
 # Adaptee - Third-party service with incompatible interface
