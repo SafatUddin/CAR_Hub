@@ -34,6 +34,7 @@
         <p><strong>Type:</strong> {{ car.get_car_type_display }}</p>
         <p><strong>Mileage:</strong> {{ car.mileage }}</p>
         <p><strong>Status:</strong> {{ car.status }}</p>
+        <p><strong>Description:</strong> {{ description }}</p>
         {% if car.registration_paper %}
         <p><strong>Registration Paper:</strong> 
             <a href="{{ car.registration_paper.url }}" target="_blank" 
