@@ -71,6 +71,10 @@ def custom_logout(request):
     return redirect('welcome')
 
 def signup(request):
+    # If user is already logged in, redirect to home
+    if request.user.is_authenticated:
+        return redirect('home')
+        
     if request.method == 'POST':
         form = SignUpForm(request.POST)
         if form.is_valid():
@@ -94,9 +98,35 @@ def buy_car(request, car_id):
     if Order.objects.filter(buyer=request.user, car=car, status='pending').exists():
         messages.warning(request, "You have already sent a buy request for this car.")
         return redirect('car_detail', car_id=car.id)
+    
+    # Get optional features from POST data
+    has_warranty = request.POST.get('warranty') == 'true'
+    has_dashcam = request.POST.get('dashcam') == 'true'
+    has_seatcovers = request.POST.get('seatcovers') == 'true'
+    has_tinting = request.POST.get('tinting') == 'true'
+    
+    # Calculate total price based on car price and selected features
+    from decimal import Decimal
+    total_price = Decimal(str(car.price))
+    if has_warranty:
+        total_price += Decimal('50000')
+    if has_dashcam:
+        total_price += Decimal('15000')
+    if has_seatcovers:
+        total_price += Decimal('20000')
+    if has_tinting:
+        total_price += Decimal('10000')
         
-    # Create Order
-    Order.objects.create(buyer=request.user, car=car)
+    # Create Order with optional features
+    Order.objects.create(
+        buyer=request.user, 
+        car=car,
+        has_warranty=has_warranty,
+        has_dashcam=has_dashcam,
+        has_seatcovers=has_seatcovers,
+        has_tinting=has_tinting,
+        total_price=total_price
+    )
     
     # Notify Owner
     Notification.objects.create(
@@ -187,6 +217,10 @@ def reject_order(request, order_id):
 
 @login_required
 def home(request):
+    # Require authentication for home page
+    if not request.user.is_authenticated:
+        return redirect('welcome')
+    
     # Redirect admin to dashboard
     if request.user.is_superuser:
         return redirect('admin_dashboard')
@@ -289,6 +323,10 @@ def home(request):
     })
 
 def car_detail(request, car_id):
+    # Require authentication
+    if not request.user.is_authenticated:
+        return redirect('login')
+    
     car = get_object_or_404(Car, id=car_id)
     
     # Only show approved cars to non-admin users
@@ -610,6 +648,10 @@ def profile(request):
     })
 
 def seller_profile(request, user_id):
+    # Require authentication
+    if not request.user.is_authenticated:
+        return redirect('login')
+    
     seller = get_object_or_404(User, id=user_id)
     
     # Get seller's cars (only approved ones for non-owners)
@@ -695,6 +737,15 @@ def mark_all_read(request):
         Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
         messages.success(request, "All notifications marked as read.")
     return redirect('notifications')
+
+from django.http import JsonResponse
+
+def notification_count_api(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({'count': 0})
+    
+    count = Notification.objects.filter(user=request.user, is_read=False).count()
+    return JsonResponse({'count': count})
 
 @login_required
 def follow_car(request, car_id):

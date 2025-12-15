@@ -14,6 +14,7 @@
 
 <body>
     {% unread_notifications_count as unread_notifications_count %}
+    {% if request.resolver_match.url_name != 'login' and request.resolver_match.url_name != 'signup' %}
     <nav class="glass-nav"
         style="display:flex; justify-content:space-between; align-items:center; padding:0.75rem 2rem;">
         <!-- Left: Logo -->
@@ -58,12 +59,10 @@
             <!-- Notifications Icon -->
             <a href="{% url 'notifications' %}" style="color:white; font-size:1.2rem; position:relative;">
                 <i class="fa-solid fa-bell"></i>
-                {% if unread_notifications_count > 0 %}
-                <span
-                    style="position:absolute; top:-8px; right:-8px; background:#ef4444; color:white; border-radius:50%; width:20px; height:20px; display:flex; align-items:center; justify-content:center; font-size:0.7rem; font-weight:700;">
+                <span id="notificationBadge"
+                    style="position:absolute; top:-8px; right:-8px; background:#ef4444; color:white; border-radius:50%; width:20px; height:20px; display:{% if unread_notifications_count > 0 %}flex{% else %}none{% endif %}; align-items:center; justify-content:center; font-size:0.7rem; font-weight:700;">
                     {{ unread_notifications_count }}
                 </span>
-                {% endif %}
             </a>
 
             <!-- Profile Icon with Dropdown -->
@@ -94,6 +93,7 @@
             {% endif %}
         </div>
     </nav>
+    {% endif %}
 
     <div class="container">
         {% if messages %}
@@ -128,6 +128,32 @@
                 }
             }
         });
+
+        {% if user.is_authenticated %}
+        // Auto-update notification count every 5 seconds
+        function updateNotificationCount() {
+            fetch('{% url "notification_count_api" %}')
+                .then(response => response.json())
+                .then(data => {
+                    const badge = document.getElementById('notificationBadge');
+                    if (badge) {
+                        if (data.count > 0) {
+                            badge.textContent = data.count;
+                            badge.style.display = 'flex';
+                        } else {
+                            badge.style.display = 'none';
+                        }
+                    }
+                })
+                .catch(error => console.error('Error fetching notification count:', error));
+        }
+
+        // Update immediately on page load
+        updateNotificationCount();
+
+        // Then update every 5 seconds
+        setInterval(updateNotificationCount, 5000);
+        {% endif %}
     </script>
 </body>
 

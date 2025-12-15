@@ -58,6 +58,13 @@ class Order(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
     
+    # Optional features
+    has_warranty = models.BooleanField(default=False)
+    has_dashcam = models.BooleanField(default=False)
+    has_seatcovers = models.BooleanField(default=False)
+    has_tinting = models.BooleanField(default=False)
+    total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    
     def __str__(self):
         return f"Order {self.id} - {self.car} by {self.buyer}"
 

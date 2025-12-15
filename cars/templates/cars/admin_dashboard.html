@@ -146,6 +146,7 @@
                         <th style="padding: 1rem; text-align: left;">Buyer</th>
                         <th style="padding: 1rem; text-align: left;">Seller</th>
                         <th style="padding: 1rem; text-align: left;">Status</th>
+                        <th style="padding: 1rem; text-align: left;">Additional Features</th>
                         <th style="padding: 1rem; text-align: left;">Date</th>
                     </tr>
                 </thead>
@@ -171,11 +172,21 @@
                             </span>
                             {% endif %}
                         </td>
+                        <td style="padding: 1rem; font-size: 0.85rem;">
+                            {% if order.has_warranty or order.has_dashcam or order.has_seatcovers or order.has_tinting %}
+                                {% if order.has_warranty %}<div>✓ Warranty</div>{% endif %}
+                                {% if order.has_dashcam %}<div>✓ Dashcam</div>{% endif %}
+                                {% if order.has_seatcovers %}<div>✓ Seat Covers</div>{% endif %}
+                                {% if order.has_tinting %}<div>✓ Tinting</div>{% endif %}
+                            {% else %}
+                                <span style="color: #64748b;">-</span>
+                            {% endif %}
+                        </td>
                         <td style="padding: 1rem;">{{ order.created_at|date:"M d, Y" }}</td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="6" style="padding: 1rem; text-align: center; color: #94a3b8;">No orders found</td>
+                        <td colspan="7" style="padding: 1rem; text-align: center; color: #94a3b8;">No orders found</td>
                     </tr>
                     {% endfor %}
                 </tbody>

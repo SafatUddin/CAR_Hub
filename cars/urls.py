@@ -9,6 +9,7 @@ urlpatterns = [
     path('delete/<int:car_id>/', views.delete_car, name='delete_car'),
     path('update/<int:car_id>/', views.update_car, name='update_car'),
     path('notifications/', views.notifications, name='notifications'),
+    path('api/notifications/count/', views.notification_count_api, name='notification_count_api'),
     path('signup/', views.signup, name='signup'),
     path('login/', views.custom_login, name='login'),
     path('logout/', views.custom_logout, name='logout'),

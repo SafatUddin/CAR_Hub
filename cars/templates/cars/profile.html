@@ -68,6 +68,20 @@
                 <h4>Request for: {{ order.car.year }} {{ order.car.make }} {{ order.car.model }}</h4>
                 <p>Buyer: <strong>{{ order.buyer.username }}</strong></p>
                 <p>Email: {{ order.buyer.email }}</p>
+                <p>Total Price: ৳{{ order.total_price|floatformat:0 }}</p>
+                
+                {% if order.has_warranty or order.has_dashcam or order.has_seatcovers or order.has_tinting %}
+                <div style="margin-top: 0.5rem; padding: 0.5rem; background: rgba(59, 130, 246, 0.1); border-radius: 0.25rem;">
+                    <p style="margin: 0 0 0.25rem 0; font-size: 0.85rem; font-weight: 600; color: #60a5fa;">Optional Features:</p>
+                    <div style="font-size: 0.85rem; color: #94a3b8;">
+                        {% if order.has_warranty %}<span>✓ Extended Warranty</span><br>{% endif %}
+                        {% if order.has_dashcam %}<span>✓ Dash Cam</span><br>{% endif %}
+                        {% if order.has_seatcovers %}<span>✓ Custom Seat Covers</span><br>{% endif %}
+                        {% if order.has_tinting %}<span>✓ Window Tinting</span><br>{% endif %}
+                    </div>
+                </div>
+                {% endif %}
+                
                 <p>Status: {{ order.status|title }}</p>
                 <p style="font-size:0.8rem; color:#ccc;">{{ order.created_at|date:"M d, Y" }}</p>
 
@@ -120,7 +134,20 @@
             <div class="card" style="border-left: 4px solid #3b82f6;">
                 <h4>Request for: {{ order.car.year }} {{ order.car.make }} {{ order.car.model }}</h4>
                 <p>Seller: <strong>{{ order.car.owner.username }}</strong></p>
-                <p>Price: ৳{{ order.car.price|floatformat:0 }}</p>
+                <p>Total Price: ৳{{ order.total_price|floatformat:0 }}</p>
+                
+                {% if order.has_warranty or order.has_dashcam or order.has_seatcovers or order.has_tinting %}
+                <div style="margin-top: 0.5rem; padding: 0.5rem; background: rgba(59, 130, 246, 0.1); border-radius: 0.25rem;">
+                    <p style="margin: 0 0 0.25rem 0; font-size: 0.85rem; font-weight: 600; color: #60a5fa;">Optional Features:</p>
+                    <div style="font-size: 0.85rem; color: #94a3b8;">
+                        {% if order.has_warranty %}<span>✓ Extended Warranty</span><br>{% endif %}
+                        {% if order.has_dashcam %}<span>✓ Dash Cam</span><br>{% endif %}
+                        {% if order.has_seatcovers %}<span>✓ Custom Seat Covers</span><br>{% endif %}
+                        {% if order.has_tinting %}<span>✓ Window Tinting</span><br>{% endif %}
+                    </div>
+                </div>
+                {% endif %}
+                
                 <p>Status: 
                     {% if order.status == 'pending' %}
                     <span style="color: #f59e0b;">{{ order.status|title }}</span>
@@ -157,7 +184,20 @@
                     </div>
                 </div>
                 <h4>{{ order.car.year }} {{ order.car.make }} {{ order.car.model }}</h4>
-                <p>Price: ৳{{ order.car.price|floatformat:0 }}</p>
+                <p>Total Price: ৳{{ order.total_price|floatformat:0 }}</p>
+                
+                {% if order.has_warranty or order.has_dashcam or order.has_seatcovers or order.has_tinting %}
+                <div style="margin-top: 0.5rem; padding: 0.5rem; background: rgba(16, 185, 129, 0.1); border-radius: 0.25rem;">
+                    <p style="margin: 0 0 0.25rem 0; font-size: 0.85rem; font-weight: 600; color: #10b981;">Optional Features:</p>
+                    <div style="font-size: 0.85rem; color: #94a3b8;">
+                        {% if order.has_warranty %}<span>✓ Extended Warranty</span><br>{% endif %}
+                        {% if order.has_dashcam %}<span>✓ Dash Cam</span><br>{% endif %}
+                        {% if order.has_seatcovers %}<span>✓ Custom Seat Covers</span><br>{% endif %}
+                        {% if order.has_tinting %}<span>✓ Window Tinting</span><br>{% endif %}
+                    </div>
+                </div>
+                {% endif %}
+                
                 <p style="font-size:0.9rem; color:#94a3b8;">Sold to: 
                     <a href="{% url 'seller_profile' order.buyer.id %}" style="color: #10b981; text-decoration: none; font-weight: 600;">
                         {{ order.buyer.first_name }} {{ order.buyer.last_name }}
@@ -188,7 +228,20 @@
                     </div>
                 </div>
                 <h4>{{ order.car.year }} {{ order.car.make }} {{ order.car.model }}</h4>
-                <p>Price: ৳{{ order.car.price|floatformat:0 }}</p>
+                <p>Total Price: ৳{{ order.total_price|floatformat:0 }}</p>
+                
+                {% if order.has_warranty or order.has_dashcam or order.has_seatcovers or order.has_tinting %}
+                <div style="margin-top: 0.5rem; padding: 0.5rem; background: rgba(59, 130, 246, 0.1); border-radius: 0.25rem;">
+                    <p style="margin: 0 0 0.25rem 0; font-size: 0.85rem; font-weight: 600; color: #60a5fa;">Optional Features:</p>
+                    <div style="font-size: 0.85rem; color: #94a3b8;">
+                        {% if order.has_warranty %}<span>✓ Extended Warranty</span><br>{% endif %}
+                        {% if order.has_dashcam %}<span>✓ Dash Cam</span><br>{% endif %}
+                        {% if order.has_seatcovers %}<span>✓ Custom Seat Covers</span><br>{% endif %}
+                        {% if order.has_tinting %}<span>✓ Window Tinting</span><br>{% endif %}
+                    </div>
+                </div>
+                {% endif %}
+                
                 <p style="font-size:0.9rem; color:#94a3b8;">Purchased from: 
                     <a href="{% url 'seller_profile' order.car.owner.id %}" style="color: #3b82f6; text-decoration: none; font-weight: 600;">
                         {{ order.car.owner.first_name }} {{ order.car.owner.last_name }}

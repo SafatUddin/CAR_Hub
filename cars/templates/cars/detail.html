@@ -15,7 +15,7 @@
         {% endif %}
     </div>
     <h1>{{ car.year }} {{ car.make }} {{ car.model }}</h1>
-    <div class="car-price">{{ currency_symbol }}{{ final_price|floatformat:2 }}</div>
+    <div class="car-price" id="carPrice">{{ currency_symbol }}<span id="priceValue">{{ final_price|floatformat:2 }}</span></div>
 
     <div style="margin-bottom: 1.5rem; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 0.5rem; border: 1px solid var(--glass-border);">
         <p style="margin: 0; color: #94a3b8; font-size: 0.9rem;">Seller</p>
@@ -47,28 +47,51 @@
 
     {% if user.is_authenticated and user != car.owner and not user.is_superuser and car.status != 'sold' %}
     <h3>Optional Features</h3>
-    <form method="get" action="">
+    <div id="optionalFeatures">
         <label style="display:block; margin-bottom:0.5rem;">
-            <input type="checkbox" name="warranty" value="1" {% if request.get.warranty %}checked{% endif %}
-                onchange="this.form.submit()" style="width:auto;">
-            Add Extended Warranty (+{{ currency_symbol }}{{ warranty_price|floatformat:0 }})
+            <input type="checkbox" id="warranty" onchange="updatePrice()" style="width:auto;">
+            Add Extended Warranty (+{{ currency_symbol }}<span class="feature-price">{{ warranty_price|floatformat:0 }}</span>)
         </label>
         <label style="display:block; margin-bottom:0.5rem;">
-            <input type="checkbox" name="dashcam" value="1" {% if request.get.dashcam %}checked{% endif %}
-                onchange="this.form.submit()" style="width:auto;">
-            Add Dash Cam (+{{ currency_symbol }}{{ dashcam_price|floatformat:0 }})
+            <input type="checkbox" id="dashcam" onchange="updatePrice()" style="width:auto;">
+            Add Dash Cam (+{{ currency_symbol }}<span class="feature-price">{{ dashcam_price|floatformat:0 }}</span>)
         </label>
         <label style="display:block; margin-bottom:0.5rem;">
-            <input type="checkbox" name="seatcovers" value="1" {% if request.get.seatcovers %}checked{% endif %}
-                onchange="this.form.submit()" style="width:auto;">
-            Add Custom Seat Covers (+{{ currency_symbol }}{{ seatcovers_price|floatformat:0 }})
+            <input type="checkbox" id="seatcovers" onchange="updatePrice()" style="width:auto;">
+            Add Custom Seat Covers (+{{ currency_symbol }}<span class="feature-price">{{ seatcovers_price|floatformat:0 }}</span>)
         </label>
         <label style="display:block; margin-bottom:0.5rem;">
-            <input type="checkbox" name="tinting" value="1" {% if request.get.tinting %}checked{% endif %}
-                onchange="this.form.submit()" style="width:auto;">
-            Add Window Tinting (+{{ currency_symbol }}{{ tinting_price|floatformat:0 }})
+            <input type="checkbox" id="tinting" onchange="updatePrice()" style="width:auto;">
+            Add Window Tinting (+{{ currency_symbol }}<span class="feature-price">{{ tinting_price|floatformat:0 }}</span>)
         </label>
-    </form>
+    </div>
+    
+    <script>
+        const basePrice = {{ car.price }};
+        const warrantyPrice = {{ warranty_price }};
+        const dashcamPrice = {{ dashcam_price }};
+        const seatcoversPrice = {{ seatcovers_price }};
+        const tintingPrice = {{ tinting_price }};
+        
+        function updatePrice() {
+            let totalPrice = basePrice;
+            
+            if (document.getElementById('warranty').checked) {
+                totalPrice += warrantyPrice;
+            }
+            if (document.getElementById('dashcam').checked) {
+                totalPrice += dashcamPrice;
+            }
+            if (document.getElementById('seatcovers').checked) {
+                totalPrice += seatcoversPrice;
+            }
+            if (document.getElementById('tinting').checked) {
+                totalPrice += tintingPrice;
+            }
+            
+            document.getElementById('priceValue').textContent = totalPrice.toFixed(2);
+        }
+    </script>
     {% endif %}
 
     <div style="margin-top: 2rem; display:flex; gap:1rem; flex-wrap:wrap;">
@@ -195,8 +218,61 @@
                 {% if user in car.followers.all %}Unfollow Car{% else %}Follow Car{% endif %}
             </a>
 
-            <a href="{% url 'buy_car' car.id %}" class="btn btn-primary" style="background:#10b981;">Buy</a>
+            <button onclick="submitBuyRequest()" class="btn btn-primary" style="background:#10b981;">Buy</button>
         </div>
+        
+        <script>
+            function submitBuyRequest() {
+                const warranty = document.getElementById('warranty')?.checked || false;
+                const dashcam = document.getElementById('dashcam')?.checked || false;
+                const seatcovers = document.getElementById('seatcovers')?.checked || false;
+                const tinting = document.getElementById('tinting')?.checked || false;
+                const totalPrice = document.getElementById('priceValue')?.textContent || '{{ car.price }}';
+                
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '{% url "buy_car" car.id %}';
+                
+                const csrfToken = document.createElement('input');
+                csrfToken.type = 'hidden';
+                csrfToken.name = 'csrfmiddlewaretoken';
+                csrfToken.value = '{{ csrf_token }}';
+                form.appendChild(csrfToken);
+                
+                const warrantyInput = document.createElement('input');
+                warrantyInput.type = 'hidden';
+                warrantyInput.name = 'warranty';
+                warrantyInput.value = warranty;
+                form.appendChild(warrantyInput);
+                
+                const dashcamInput = document.createElement('input');
+                dashcamInput.type = 'hidden';
+                dashcamInput.name = 'dashcam';
+                dashcamInput.value = dashcam;
+                form.appendChild(dashcamInput);
+                
+                const seatcoversInput = document.createElement('input');
+                seatcoversInput.type = 'hidden';
+                seatcoversInput.name = 'seatcovers';
+                seatcoversInput.value = seatcovers;
+                form.appendChild(seatcoversInput);
+                
+                const tintingInput = document.createElement('input');
+                tintingInput.type = 'hidden';
+                tintingInput.name = 'tinting';
+                tintingInput.value = tinting;
+                form.appendChild(tintingInput);
+                
+                const priceInput = document.createElement('input');
+                priceInput.type = 'hidden';
+                priceInput.name = 'total_price';
+                priceInput.value = totalPrice;
+                form.appendChild(priceInput);
+                
+                document.body.appendChild(form);
+                form.submit();
+            }
+        </script>
         {% endif %}
         {% endif %}
 
