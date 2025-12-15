@@ -58,204 +58,291 @@
         {% endif %}
     </div>
 
-    <!-- Buy Requests Section -->
+    <!-- Incoming Buy Requests -->
     <div style="margin-bottom: 2rem;">
         <h3>Incoming Buy Requests</h3>
         {% if buy_requests %}
         <div class="grid">
             {% for order in buy_requests %}
-            <div class="card" style="border-left: 4px solid #10b981;">
+            <div class="card" style="border-left: 4px solid {% if order.status == 'paid' %}#10b981{% elif order.status == 'completed' %}#10b981{% elif order.status == 'pending' %}#f59e0b{% else %}#ef4444{% endif %};">
                 <h4>Request for: {{ order.car.year }} {{ order.car.make }} {{ order.car.model }}</h4>
                 <p>Buyer: <strong>{{ order.buyer.username }}</strong></p>
-                <p>Email: {{ order.buyer.email }}</p>
-                <p>Total Price: ৳{{ order.total_price|floatformat:0 }}</p>
+                <p>Email:  <a href="mailto:{{ order.buyer.email }}" style="color: #60a5fa; text-decoration: none;">{{ order.buyer.email }}</a></p>
+                <p>Total Price: <span style="font-size: 1.2rem; color: #10b981; font-weight: 700;">৳{{ order.total_price|floatformat:0 }}</span></p>
                 
                 {% if order.has_warranty or order.has_dashcam or order.has_seatcovers or order.has_tinting %}
                 <div style="margin-top: 0.5rem; padding: 0.5rem; background: rgba(59, 130, 246, 0.1); border-radius: 0.25rem;">
-                    <p style="margin: 0 0 0.25rem 0; font-size: 0.85rem; font-weight: 600; color: #60a5fa;">Optional Features:</p>
-                    <div style="font-size: 0.85rem; color: #94a3b8;">
-                        {% if order.has_warranty %}<span>✓ Extended Warranty</span><br>{% endif %}
-                        {% if order.has_dashcam %}<span>✓ Dash Cam</span><br>{% endif %}
-                        {% if order.has_seatcovers %}<span>✓ Custom Seat Covers</span><br>{% endif %}
-                        {% if order.has_tinting %}<span>✓ Window Tinting</span><br>{% endif %}
+                    <p style="margin: 0 0 0.25rem 0; font-size: 0.85rem; font-weight: 600; color: #60a5fa;">✨ Optional Features:</p>
+                    <div style="font-size:  0.85rem; color: #94a3b8;">
+                        {% if order.has_warranty %}<span>✓ Extended Warranty (+৳50,000)</span><br>{% endif %}
+                        {% if order.has_dashcam %}<span>✓ Dash Cam (+৳15,000)</span><br>{% endif %}
+                        {% if order.has_seatcovers %}<span>✓ Custom Seat Covers (+৳20,000)</span><br>{% endif %}
+                        {% if order.has_tinting %}<span>✓ Window Tinting (+৳10,000)</span><br>{% endif %}
                     </div>
                 </div>
                 {% endif %}
                 
-                <p>Status: {{ order.status|title }}</p>
-                <p style="font-size:0.8rem; color:#ccc;">{{ order.created_at|date:"M d, Y" }}</p>
+                <!-- Payment Status Badge -->
+                {% if order.status == 'paid' %}
+                <div style="margin-top: 1rem; padding: 0.75rem; background: rgba(16, 185, 129, 0.2); border-radius: 0.5rem; border: 1px solid #10b981;">
+                    <p style="margin: 0; color: #10b981; font-weight:  600; font-size: 0.95rem;">
+                        <i class="fa-solid fa-circle-check"></i> Payment Received
+                    </p>
+                    {% if order.payment_method %}
+                    <p style="margin: 0.25rem 0 0 0; color: #94a3b8; font-size: 0.8rem;">
+                        Paid via {{ order.payment_method|title }} on {{ order.payment_completed_at|date:"M d, Y h:i A" }}
+                    </p>
+                    {% endif %}
+                </div>
+                {% endif %}
+                
+                <!-- Status Badge -->
+                <p style="margin-top: 1rem;">
+                    <strong>Status:</strong>
+                    {% if order.status == 'pending' %}
+                        <span style="display: inline-block; padding: 0.25rem 0.75rem; background: rgba(251, 191, 36, 0.2); color: #fbbf24; border-radius: 0.25rem; font-weight: 600; font-size: 0.85rem;">
+                            ⏳ Awaiting Payment
+                        </span>
+                    {% elif order.status == 'paid' %}
+                        <span style="display: inline-block; padding: 0.25rem 0.75rem; background: rgba(16, 185, 129, 0.2); color: #10b981; border-radius: 0.25rem; font-weight: 600; font-size: 0.85rem;">
+                            💰 Paid - Ready to Accept
+                        </span>
+                    {% elif order.status == 'completed' %}
+                        <span style="display: inline-block; padding: 0.25rem 0.75rem; background: rgba(16, 185, 129, 0.2); color: #10b981; border-radius: 0.25rem; font-weight: 600; font-size: 0.85rem;">
+                            ✅ Completed
+                        </span>
+                    {% elif order.status == 'cancelled' %}
+                        <span style="display: inline-block; padding: 0.25rem 0.75rem; background: rgba(239, 68, 68, 0.2); color: #ef4444; border-radius: 0.25rem; font-weight: 600; font-size: 0.85rem;">
+                            ❌ Cancelled
+                        </span>
+                    {% else %}
+                        <span style="color: #94a3b8;">{{ order.status|title }}</span>
+                    {% endif %}
+                </p>
+                
+                <p style="font-size: 0.8rem; color: #94a3b8; margin:  0.5rem 0 1rem 0;">
+                    <i class="fa-regular fa-calendar"></i> Request sent on {{ order.created_at|date:"M d, Y" }}
+                </p>
 
+                <!-- PENDING:  Show waiting message -->
                 {% if order.status == 'pending' %}
+                <div class="card" style="background: rgba(251, 191, 36, 0.1); border-left: 4px solid #fbbf24; margin-top: 1rem;">
+                    <p style="margin:  0; color: #fbbf24; font-size: 0.9rem;">
+                        <i class="fa-solid fa-clock"></i> Waiting for buyer to complete payment
+                    </p>
+                </div>
+                {% endif %}
 
-                <!-- Contact Buyer Section -->
-                <div style="margin-top:1rem; padding-top:1rem; border-top:1px solid var(--glass-border);">
-                    <h4 style="font-size:1rem; margin-bottom:0.5rem;">Contact Buyer</h4>
-                    <div style="display:flex; gap:0.5rem; margin-bottom:1rem;">
+                <!-- PAID: Show accept/reject buttons -->
+                {% if order.status == 'paid' %}
+                <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--glass-border);">
+                    <h4 style="font-size: 1rem; margin-bottom: 0.5rem; color: #10b981;">
+                        <i class="fa-solid fa-hand-holding-dollar"></i> Action Required
+                    </h4>
+                    <p style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 1rem;">
+                        Buyer has completed payment.Accept to finalize the sale or reject to cancel.
+                    </p>
+                    
+                    <!-- Contact Buyer -->
+                    <h4 style="font-size: 0.9rem; margin-bottom: 0.5rem; color: #94a3b8;">
+                        <i class="fa-solid fa-user"></i> Contact Buyer
+                    </h4>
+                    <div style="display: flex; gap:  0.5rem; margin-bottom: 1rem;">
                         {% if order.buyer.email %}
                         <a href="mailto:{{ order.buyer.email }}" class="btn"
-                            style="background:white; color:black; display:flex; align-items:center; gap:0.5rem; font-size:0.9rem; flex:1;">
+                            style="flex: 1; background: white; color: #333; display: flex; align-items: center; justify-content: center; gap: 0.5rem; font-size: 0.85rem; padding: 0.5rem;">
                             <i class="fa-solid fa-envelope"></i> Email
                         </a>
                         {% endif %}
                         {% if order.buyer.profile.whatsapp_number %}
                         <a href="https://wa.me/{{ order.buyer.profile.whatsapp_number }}" target="_blank" class="btn"
-                            style="background:white; color:black; display:flex; align-items:center; gap:0.5rem; font-size:0.9rem; flex:1;">
+                            style="flex:  1; background: #25D366; color: white; display: flex; align-items:  center; justify-content: center; gap: 0.5rem; font-size: 0.85rem; padding: 0.5rem;">
                             <i class="fa-brands fa-whatsapp"></i> WhatsApp
                         </a>
                         {% endif %}
                     </div>
 
-                    <div style="display:flex; gap:0.5rem;">
-                        <form action="{% url 'accept_order' order.id %}" method="post" style="flex:1; margin:0;">
+                    <!-- Accept/Reject Buttons -->
+                    <div style="display: flex; gap:  0.5rem;">
+                        <form action="{% url 'accept_order' order.id %}" method="post" style="flex: 1; margin: 0;" onsubmit="return confirm('Accept this order?  The car will be marked as sold and the buyer will be notified.');">
                             {% csrf_token %}
-                            <button type="submit" class="btn btn-primary" style="width:100%;">Accept & Mark Sold</button>
+                            <button type="submit" class="btn btn-primary" style="width:  100%;">
+                                <i class="fa-solid fa-check"></i> Accept & Mark Sold
+                            </button>
                         </form>
-                        <form action="{% url 'reject_order' order.id %}" method="post" style="flex:1; margin:0;" onsubmit="return confirm('Are you sure you want to reject this buy request?');">
+                        <form action="{% url 'reject_order' order.id %}" method="post" style="flex: 1; margin: 0;" onsubmit="return confirm('Are you sure you want to reject this paid order? This will refund the buyer.');">
                             {% csrf_token %}
-                            <button type="submit" class="btn btn-danger" style="width:100%;">Reject</button>
+                            <button type="submit" class="btn btn-danger" style="width: 100%;">
+                                <i class="fa-solid fa-times"></i> Reject Order
+                            </button>
                         </form>
                     </div>
+                </div>
+                {% endif %}
+
+                <!-- COMPLETED: Show completion info -->
+                {% if order.status == 'completed' %}
+                <div class="card" style="background: rgba(16, 185, 129, 0.1); border-left: 4px solid #10b981; margin-top: 1rem;">
+                    <p style="margin: 0; color: #10b981; font-weight: 600;">
+                        <i class="fa-solid fa-circle-check"></i> Sale Completed Successfully
+                    </p>
+                    <p style="margin: 0.5rem 0 0 0; color: #94a3b8; font-size:  0.85rem;">
+                        You sold this car to {{ order.buyer.username }}
+                    </p>
+                </div>
+                {% endif %}
+
+                <!-- CANCELLED: Show cancellation info -->
+                {% if order.status == 'cancelled' %}
+                <div class="card" style="background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; margin-top: 1rem;">
+                    <p style="margin: 0; color: #ef4444; font-weight: 600;">
+                        <i class="fa-solid fa-circle-xmark"></i> Order Cancelled
+                    </p>
                 </div>
                 {% endif %}
             </div>
             {% endfor %}
         </div>
         {% else %}
-        <p>No buy requests yet.</p>
+        <p style="color: #94a3b8; text-align: center; padding: 2rem;">
+            No incoming buy requests yet.
+        </p>
+        <div style="text-align: center; margin-top: 1rem;">
+            <p style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 1rem;">
+                List a car to start receiving buy requests
+            </p>
+            <a href="{% url 'create_car' %}" class="btn btn-primary">
+                <i class="fa-solid fa-plus"></i> List a Car
+            </a>
+        </div>
         {% endif %}
     </div>
 
     <!-- My Purchase Requests -->
-    <div style="margin-bottom: 2rem;">
+    <div style="margin-bottom:  2rem;">
         <h3>My Purchase Requests</h3>
         {% if my_purchase_requests %}
         <div class="grid">
             {% for order in my_purchase_requests %}
-            <div class="card" style="border-left: 4px solid #3b82f6;">
-                <h4>Request for: {{ order.car.year }} {{ order.car.make }} {{ order.car.model }}</h4>
+            <div class="card" style="border-left: 4px solid {% if order.status == 'paid' %}#10b981{% elif order.status == 'completed' %}#10b981{% elif order.status == 'pending' %}#f59e0b{% else %}#ef4444{% endif %};">
+                <h4>{{ order.car.year }} {{ order.car.make }} {{ order.car.model }}</h4>
                 <p>Seller: <strong>{{ order.car.owner.username }}</strong></p>
-                <p>Total Price: ৳{{ order.total_price|floatformat:0 }}</p>
+                <p>Total Price: <span style="font-size: 1.2rem; color: #10b981; font-weight:  700;">৳{{ order.total_price|floatformat:0 }}</span></p>
                 
                 {% if order.has_warranty or order.has_dashcam or order.has_seatcovers or order.has_tinting %}
                 <div style="margin-top: 0.5rem; padding: 0.5rem; background: rgba(59, 130, 246, 0.1); border-radius: 0.25rem;">
-                    <p style="margin: 0 0 0.25rem 0; font-size: 0.85rem; font-weight: 600; color: #60a5fa;">Optional Features:</p>
-                    <div style="font-size: 0.85rem; color: #94a3b8;">
-                        {% if order.has_warranty %}<span>✓ Extended Warranty</span><br>{% endif %}
-                        {% if order.has_dashcam %}<span>✓ Dash Cam</span><br>{% endif %}
-                        {% if order.has_seatcovers %}<span>✓ Custom Seat Covers</span><br>{% endif %}
-                        {% if order.has_tinting %}<span>✓ Window Tinting</span><br>{% endif %}
+                    <p style="margin: 0 0 0.25rem 0; font-size: 0.85rem; font-weight: 600; color: #60a5fa;">✨ Optional Features:</p>
+                    <div style="font-size:  0.85rem; color: #94a3b8;">
+                        {% if order.has_warranty %}<span>✓ Extended Warranty (+৳50,000)</span><br>{% endif %}
+                        {% if order.has_dashcam %}<span>✓ Dash Cam (+৳15,000)</span><br>{% endif %}
+                        {% if order.has_seatcovers %}<span>✓ Custom Seat Covers (+৳20,000)</span><br>{% endif %}
+                        {% if order.has_tinting %}<span>✓ Window Tinting (+৳10,000)</span><br>{% endif %}
                     </div>
                 </div>
                 {% endif %}
                 
-                <p>Status: 
+                <!-- Payment Info Badge (if paid) -->
+                {% if order.status == 'paid' or order.status == 'completed' %}
+                <div style="margin-top: 1rem; padding: 0.75rem; background: rgba(16, 185, 129, 0.15); border-radius: 0.5rem; border: 1px solid #10b981;">
+                    <p style="margin: 0; color: #10b981; font-weight: 600; font-size: 0.9rem;">
+                        <i class="fa-solid fa-circle-check"></i> Payment Completed
+                    </p>
+                    {% if order.payment_method %}
+                    <p style="margin: 0.25rem 0 0 0; color: #94a3b8; font-size: 0.8rem;">
+                        Paid via {{ order.payment_method|title }} on {{ order.payment_completed_at|date:"M d, Y" }}
+                    </p>
+                    {% endif %}
+                </div>
+                {% endif %}
+                
+                <!-- Status Badge -->
+                <p style="margin-top: 1rem;">
+                    <strong>Status:</strong>
                     {% if order.status == 'pending' %}
-                    <span style="color: #f59e0b;">{{ order.status|title }}</span>
-                    {% elif order.status == 'accepted' %}
-                    <span style="color: #10b981;">{{ order.status|title }}</span>
+                        <span style="display: inline-block; padding: 0.25rem 0.75rem; background: rgba(251, 191, 36, 0.2); color: #fbbf24; border-radius:  0.25rem; font-weight: 600; font-size: 0.85rem;">
+                            ⏳ Pending Payment
+                        </span>
+                    {% elif order.status == 'paid' %}
+                        <span style="display: inline-block; padding: 0.25rem 0.75rem; background: rgba(59, 130, 246, 0.2); color: #60a5fa; border-radius:  0.25rem; font-weight: 600; font-size: 0.85rem;">
+                            💰 Paid - Awaiting Seller Confirmation
+                        </span>
+                    {% elif order.status == 'completed' %}
+                        <span style="display: inline-block; padding: 0.25rem 0.75rem; background: rgba(16, 185, 129, 0.2); color: #10b981; border-radius:  0.25rem; font-weight: 600; font-size: 0.85rem;">
+                            ✅ Completed
+                        </span>
+                    {% elif order.status == 'cancelled' %}
+                        <span style="display: inline-block; padding:  0.25rem 0.75rem; background: rgba(239, 68, 68, 0.2); color: #ef4444; border-radius: 0.25rem; font-weight: 600; font-size:  0.85rem;">
+                            ❌ Cancelled
+                        </span>
                     {% else %}
-                    <span style="color: #ef4444;">{{ order.status|title }}</span>
+                        <span style="color: #94a3b8;">{{ order.status|title }}</span>
                     {% endif %}
                 </p>
-                <p style="font-size:0.8rem; color:#ccc;">{{ order.created_at|date:"M d, Y" }}</p>
-                <a href="{% url 'car_detail' order.car.id %}" class="btn btn-primary" style="font-size:0.9rem; margin-top:0.5rem;">View Car</a>
-            </div>
-            {% endfor %}
-        </div>
-        {% else %}
-        <p>You haven't made any purchase requests yet.</p>
-        {% endif %}
-    </div>
-
-    <!-- Cars Sold -->
-    <div style="margin-bottom: 2rem;">
-        <h3>Cars I've Sold</h3>
-        {% if sold_cars %}
-        <div class="grid">
-            {% for order in sold_cars %}
-            <div class="card" style="border-left: 4px solid #10b981;">
-                <div style="position: relative;">
-                    {% if order.car.images.first %}
-                    <img src="{{ order.car.images.first.image.url }}" alt="{{ order.car.make }} {{ order.car.model }}"
-                        style="width:100%; height:150px; object-fit:cover; border-radius:0.5rem; margin-bottom:1rem;">
-                    {% endif %}
-                    <div style="position: absolute; top: 20px; right: -35px; background: #ef4444; color: white; padding: 0.5rem 3rem; font-weight: 700; font-size: 0.9rem; transform: rotate(45deg); box-shadow: 0 4px 8px rgba(0,0,0,0.3); text-transform: uppercase; letter-spacing: 1px;">
-                        SOLD
-                    </div>
-                </div>
-                <h4>{{ order.car.year }} {{ order.car.make }} {{ order.car.model }}</h4>
-                <p>Total Price: ৳{{ order.total_price|floatformat:0 }}</p>
                 
-                {% if order.has_warranty or order.has_dashcam or order.has_seatcovers or order.has_tinting %}
-                <div style="margin-top: 0.5rem; padding: 0.5rem; background: rgba(16, 185, 129, 0.1); border-radius: 0.25rem;">
-                    <p style="margin: 0 0 0.25rem 0; font-size: 0.85rem; font-weight: 600; color: #10b981;">Optional Features:</p>
-                    <div style="font-size: 0.85rem; color: #94a3b8;">
-                        {% if order.has_warranty %}<span>✓ Extended Warranty</span><br>{% endif %}
-                        {% if order.has_dashcam %}<span>✓ Dash Cam</span><br>{% endif %}
-                        {% if order.has_seatcovers %}<span>✓ Custom Seat Covers</span><br>{% endif %}
-                        {% if order.has_tinting %}<span>✓ Window Tinting</span><br>{% endif %}
+                <p style="font-size: 0.8rem; color: #94a3b8; margin:  0.5rem 0 1rem 0;">
+                    <i class="fa-regular fa-calendar"></i> {{ order.created_at|date:"M d, Y" }}
+                </p>
+
+                <!-- Action Buttons -->
+                <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                    <!-- Payment Button (only for pending orders) -->
+                    {% if order.status == 'pending' %}
+                    <a href="{% url 'initiate_payment' order.id %}" 
+                    class="btn btn-primary" 
+                    style="flex: 1; text-align: center;">
+                        <i class="fa-solid fa-credit-card"></i> Proceed to Payment
+                    </a>
+                    {% endif %}
+                    
+                    <!-- View Car Button -->
+                    <a href="{% url 'car_detail' order.car.id %}" 
+                    class="btn" 
+                    style="flex:  1; background: rgba(255,255,255,0.1); text-align: center;">
+                        <i class="fa-solid fa-eye"></i> View Car
+                    </a>
+                </div>
+
+                <!-- Contact Seller (for paid/completed orders) -->
+                {% if order.status == 'paid' or order.status == 'completed' %}
+                <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--glass-border);">
+                    <h4 style="font-size: 0.9rem; margin-bottom: 0.5rem; color: #94a3b8;">
+                        <i class="fa-solid fa-user"></i> Contact Seller
+                    </h4>
+                    <div style="display: flex; gap: 0.5rem;">
+                        {% if order.car.contact_email %}
+                        <a href="mailto:{{ order.car.contact_email }}" 
+                        class="btn" 
+                        style="flex:  1; background: white; color: #333; font-size: 0.85rem; padding: 0.5rem;">
+                            <i class="fa-solid fa-envelope"></i> Email
+                        </a>
+                        {% endif %}
+                        {% if order.car.contact_whatsapp %}
+                        <a href="https://wa.me/{{ order.car.contact_whatsapp }}" 
+                        target="_blank" 
+                        class="btn" 
+                        style="flex: 1; background:  #25D366; color: white; font-size: 0.85rem; padding: 0.5rem;">
+                            <i class="fa-brands fa-whatsapp"></i> WhatsApp
+                        </a>
+                        {% endif %}
                     </div>
                 </div>
                 {% endif %}
-                
-                <p style="font-size:0.9rem; color:#94a3b8;">Sold to: 
-                    <a href="{% url 'seller_profile' order.buyer.id %}" style="color: #10b981; text-decoration: none; font-weight: 600;">
-                        {{ order.buyer.first_name }}
-                    </a>
-                </p>
             </div>
             {% endfor %}
         </div>
         {% else %}
-        <p>You haven't sold any cars yet.</p>
+        <p style="color: #94a3b8; text-align: center; padding: 2rem;">
+            You haven't made any purchase requests yet.
+        </p>
+        <div style="text-align: center; margin-top: 1rem;">
+            <a href="{% url 'home' %}" class="btn btn-primary">
+                <i class="fa-solid fa-car"></i> Browse Cars
+            </a>
+        </div>
         {% endif %}
     </div>
 
-    <!-- Cars Bought -->
-    <div style="margin-bottom: 2rem;">
-        <h3>Cars I've Bought</h3>
-        {% if bought_cars %}
-        <div class="grid">
-            {% for order in bought_cars %}
-            <div class="card" style="border-left: 4px solid #3b82f6;">
-                <div style="position: relative;">
-                    {% if order.car.images.first %}
-                    <img src="{{ order.car.images.first.image.url }}" alt="{{ order.car.make }} {{ order.car.model }}"
-                        style="width:100%; height:150px; object-fit:cover; border-radius:0.5rem; margin-bottom:1rem;">
-                    {% endif %}
-                    <div style="position: absolute; top: 20px; right: -35px; background: #ef4444; color: white; padding: 0.5rem 3rem; font-weight: 700; font-size: 0.9rem; transform: rotate(45deg); box-shadow: 0 4px 8px rgba(0,0,0,0.3); text-transform: uppercase; letter-spacing: 1px;">
-                        SOLD
-                    </div>
-                </div>
-                <h4>{{ order.car.year }} {{ order.car.make }} {{ order.car.model }}</h4>
-                <p>Total Price: ৳{{ order.total_price|floatformat:0 }}</p>
-                
-                {% if order.has_warranty or order.has_dashcam or order.has_seatcovers or order.has_tinting %}
-                <div style="margin-top: 0.5rem; padding: 0.5rem; background: rgba(59, 130, 246, 0.1); border-radius: 0.25rem;">
-                    <p style="margin: 0 0 0.25rem 0; font-size: 0.85rem; font-weight: 600; color: #60a5fa;">Optional Features:</p>
-                    <div style="font-size: 0.85rem; color: #94a3b8;">
-                        {% if order.has_warranty %}<span>✓ Extended Warranty</span><br>{% endif %}
-                        {% if order.has_dashcam %}<span>✓ Dash Cam</span><br>{% endif %}
-                        {% if order.has_seatcovers %}<span>✓ Custom Seat Covers</span><br>{% endif %}
-                        {% if order.has_tinting %}<span>✓ Window Tinting</span><br>{% endif %}
-                    </div>
-                </div>
-                {% endif %}
-                
-                <p style="font-size:0.9rem; color:#94a3b8;">Purchased from: 
-                    <a href="{% url 'seller_profile' order.car.owner.id %}" style="color: #3b82f6; text-decoration: none; font-weight: 600;">
-                        {{ order.car.owner.first_name }}
-                    </a>
-                </p>
-                <a href="{% url 'car_detail' order.car.id %}" class="btn btn-primary" style="font-size:0.9rem; margin-top:0.5rem;">View Details</a>
-            </div>
-            {% endfor %}
-        </div>
-        {% else %}
-        <p>You haven't bought any cars yet.</p>
-        {% endif %}
-    </div>
-    {% endif %}
+    {% endif %} 
 
     <!-- Account Actions -->
     <div
