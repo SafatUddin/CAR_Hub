@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 {% extends 'cars/base.html' %}
+{% load humanize %}
 
 {% block content %}
 <div class="card" style="max-width: 800px; margin: 0 auto;">
@@ -68,7 +69,7 @@
                 <h4>Request for: {{ order.car.year }} {{ order.car.make }} {{ order.car.model }}</h4>
                 <p>Buyer: <strong>{{ order.buyer.username }}</strong></p>
                 <p>Email:  <a href="mailto:{{ order.buyer.email }}" style="color: #60a5fa; text-decoration: none;">{{ order.buyer.email }}</a></p>
-                <p>Total Price: <span style="font-size: 1.2rem; color: #10b981; font-weight: 700;">৳{{ order.total_price|floatformat:0 }}</span></p>
+                <p>Total Price: <span style="font-size: 1.2rem; color: #10b981; font-weight: 700;">৳{{ order.total_price|floatformat:0|intcomma }}</span></p>
                 
                 {% if order.has_warranty or order.has_dashcam or order.has_seatcovers or order.has_tinting %}
                 <div style="margin-top: 0.5rem; padding: 0.5rem; background: rgba(59, 130, 246, 0.1); border-radius: 0.25rem;">
@@ -227,7 +228,7 @@
             <div class="card" style="border-left: 4px solid {% if order.status == 'paid' %}#10b981{% elif order.status == 'completed' %}#10b981{% elif order.status == 'pending' %}#f59e0b{% else %}#ef4444{% endif %};">
                 <h4>{{ order.car.year }} {{ order.car.make }} {{ order.car.model }}</h4>
                 <p>Seller: <strong>{{ order.car.owner.username }}</strong></p>
-                <p>Total Price: <span style="font-size: 1.2rem; color: #10b981; font-weight:  700;">৳{{ order.total_price|floatformat:0 }}</span></p>
+                <p>Total Price: <span style="font-size: 1.2rem; color: #10b981; font-weight:  700;">৳{{ order.total_price|floatformat:0|intcomma }}</span></p>
                 
                 {% if order.has_warranty or order.has_dashcam or order.has_seatcovers or order.has_tinting %}
                 <div style="margin-top: 0.5rem; padding: 0.5rem; background: rgba(59, 130, 246, 0.1); border-radius: 0.25rem;">
