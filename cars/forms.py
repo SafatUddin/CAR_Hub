@@ -96,11 +96,12 @@ class SignUpForm(UserCreationForm):
     def save(self, commit=True):
         user = super().save(commit=False)
         # Use full name as first_name
-        user.first_name = self.cleaned_data['name'].strip()
+        name = self.cleaned_data['name'].strip()
+        user.first_name = name
         user.email = self.cleaned_data['email']
         
-        # Generate unique username from name
-        base_username = name_parts[0].lower()
+        # Generate unique username from first word of name
+        base_username = name.split()[0].lower() if name else 'user'
         username = base_username
         counter = 1
         while User.objects.filter(username=username).exists():
