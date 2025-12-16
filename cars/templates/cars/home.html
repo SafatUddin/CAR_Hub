@@ -1,4 +1,5 @@
 {% extends 'cars/base.html' %}
+{% load humanize %}
 
 {% block content %}
 <div class="search-bar">
@@ -143,7 +144,7 @@
             {% endif %}
         </div>
         <h3>{{ car.year }} {{ car.make }} {{ car.model }}</h3>
-        <div class="car-price">{{ car.currency_symbol }}{{ car.display_price|floatformat:2 }}</div>
+        <div class="car-price">{{ car.currency_symbol }}{{ car.display_price|floatformat:2|intcomma }}</div>
         <div class="car-meta">
             <span>{{ car.mileage }} miles</span>
             <span>{{ car.get_car_type_display }}</span>

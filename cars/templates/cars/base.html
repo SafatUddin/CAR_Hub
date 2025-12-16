@@ -10,34 +10,37 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'cars/style.css' %}">
+    <style>
+        #profile-dropdown a:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        #profile-dropdown button:hover {
+            background: rgba(239,68,68,0.1);
+        }
+    </style>
 </head>
 
 <body>
     {% unread_notifications_count as unread_notifications_count %}
-    {% if request.resolver_match.url_name != 'login' and request.resolver_match.url_name != 'signup' %}
     <nav class="glass-nav"
         style="display:flex; justify-content:space-between; align-items:center; padding:0.75rem 2rem;">
         <!-- Left: Logo -->
-        <div style="display: flex; align-items: center; gap: 1rem;">
-            <div class="logo" style="font-size:1.3rem; font-weight:700; color:#5B9FED;">CarHub</div>
-            {% if user.is_authenticated and user.is_superuser %}
-            <span style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 0.25rem 0.75rem; border-radius: 0.25rem; font-size: 0.8rem; font-weight: 600;">ADMIN</span>
-            {% endif %}
+        <div class="logo" style="font-size:1.3rem; font-weight:700; color:#5B9FED;">
+            CarHub{% if user.is_superuser %}<span style="color:#f59e0b; font-size:0.8rem; margin-left:0.5rem;">Admin</span>{% endif %}
         </div>
 
         <!-- Center: Navigation Links -->
-        <div style="display:flex; gap:2rem; align-items:center;">
-            {% if user.is_authenticated %}
-            {% if user.is_superuser %}
-            <a href="{% url 'admin_dashboard' %}" style="text-decoration:none; color:white; font-weight:500;">
-                <i class="fa-solid fa-gauge-high"></i> Admin Dashboard
-            </a>
-            {% else %}
+        <div style="display: flex; gap:2rem; align-items:center;">
+            {% if not user.is_superuser %}
             <a href="{% url 'home' %}" style="text-decoration:none; color:white; font-weight:500;">Home</a>
+            {% if user.is_authenticated %}
             <a href="{% url 'create_car' %}" style="text-decoration:none; color:white; font-weight:500;">List a Car</a>
             {% endif %}
-            {% else %}
-            <a href="{% url 'home' %}" style="text-decoration:none; color:white; font-weight:500;">Home</a>
+            {% endif %}
+            {% if user.is_superuser %}
+            <a href="{% url 'admin_dashboard' %}" style="text-decoration:none; color:#f59e0b; font-weight:600;">
+                🛡️ Admin Dashboard
+            </a>
             {% endif %}
         </div>
 
@@ -59,30 +62,25 @@
             <!-- Notifications Icon -->
             <a href="{% url 'notifications' %}" style="color:white; font-size:1.2rem; position:relative;">
                 <i class="fa-solid fa-bell"></i>
-                <span id="notificationBadge"
-                    style="position:absolute; top:-8px; right:-8px; background:#ef4444; color:white; border-radius:50%; width:20px; height:20px; display:{% if unread_notifications_count > 0 %}flex{% else %}none{% endif %}; align-items:center; justify-content:center; font-size:0.7rem; font-weight:700;">
+                <span id="notification-badge"
+                    style="position:absolute; top:-8px; right:-8px; background:#ef4444; color:white; border-radius:50%; min-width:20px; height:20px; display:{% if unread_notifications_count > 0 %}flex{% else %}none{% endif %}; align-items:center; justify-content:center; font-size:0.7rem; font-weight:700; padding: 0 4px;">
                     {{ unread_notifications_count }}
                 </span>
             </a>
 
-            <!-- Profile Icon with Dropdown -->
-            <div style="position: relative;" class="profile-dropdown">
-                <button onclick="toggleProfileMenu()" style="background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer; padding: 0.5rem;">
+            <!-- Profile Dropdown -->
+            <div style="position: relative;">
+                <button id="profile-dropdown-btn" onclick="toggleProfileDropdown()" style="background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer; padding: 0;">
                     <i class="fa-solid fa-user"></i>
                 </button>
-                <div id="profileMenu" style="display: none; position: absolute; right: 0; top: 100%; margin-top: 0.5rem; background: rgba(30, 30, 50, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.5rem; min-width: 200px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); z-index: 1000;">
-                    <a href="{% url 'profile' %}" style="display: block; padding: 0.75rem 1rem; color: white; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                        <i class="fa-solid fa-user"></i> My Profile
+                <div id="profile-dropdown" style="display: none; position: absolute; right: 0; top: 100%; margin-top: 0.5rem; background: rgba(30, 41, 59, 0.95); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.5rem; min-width: 150px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); z-index: 1000; backdrop-filter: blur(10px);">
+                    <a href="{% url 'profile' %}" style="display: block; padding: 0.75rem 1rem; color: white; text-decoration: none; transition: background 0.2s;">
+                        <i class="fa-solid fa-user" style="margin-right: 0.5rem;"></i>Profile
                     </a>
-                    {% if user.is_superuser %}
-                    <a href="{% url 'admin_dashboard' %}" style="display: block; padding: 0.75rem 1rem; color: white; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                        <i class="fa-solid fa-gauge-high"></i> Admin Dashboard
-                    </a>
-                    {% endif %}
                     <form action="{% url 'logout' %}" method="post" style="margin: 0;">
                         {% csrf_token %}
-                        <button type="submit" style="width: 100%; text-align: left; background: none; border: none; padding: 0.75rem 1rem; color: white; cursor: pointer; display: block;">
-                            <i class="fa-solid fa-right-from-bracket"></i> Logout
+                        <button type="submit" style="width: 100%; text-align: left; padding: 0.75rem 1rem; background: none; border: none; color: white; cursor: pointer; transition: background 0.2s; border-top: 1px solid rgba(255,255,255,0.1);">
+                            <i class="fa-solid fa-right-from-bracket" style="margin-right: 0.5rem;"></i>Logout
                         </button>
                     </form>
                 </div>
@@ -93,7 +91,6 @@
             {% endif %}
         </div>
     </nav>
-    {% endif %}
 
     <div class="container">
         {% if messages %}
@@ -108,34 +105,30 @@
         {% endblock %}
     </div>
 
+    {% if user.is_authenticated %}
     <script>
-        function toggleProfileMenu() {
-            const menu = document.getElementById('profileMenu');
-            if (menu.style.display === 'none' || menu.style.display === '') {
-                menu.style.display = 'block';
-            } else {
-                menu.style.display = 'none';
-            }
+        // Profile dropdown toggle
+        function toggleProfileDropdown() {
+            const dropdown = document.getElementById('profile-dropdown');
+            dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
         }
 
         // Close dropdown when clicking outside
         document.addEventListener('click', function(event) {
-            const profileDropdown = document.querySelector('.profile-dropdown');
-            const menu = document.getElementById('profileMenu');
-            if (profileDropdown && !profileDropdown.contains(event.target)) {
-                if (menu) {
-                    menu.style.display = 'none';
-                }
+            const dropdown = document.getElementById('profile-dropdown');
+            const button = document.getElementById('profile-dropdown-btn');
+            
+            if (dropdown && button && !button.contains(event.target) && !dropdown.contains(event.target)) {
+                dropdown.style.display = 'none';
             }
         });
 
-        {% if user.is_authenticated %}
-        // Auto-update notification count every 5 seconds
+        // Auto-update notification count every 10 seconds
         function updateNotificationCount() {
             fetch('{% url "notification_count_api" %}')
                 .then(response => response.json())
                 .then(data => {
-                    const badge = document.getElementById('notificationBadge');
+                    const badge = document.getElementById('notification-badge');
                     if (badge) {
                         if (data.count > 0) {
                             badge.textContent = data.count;
@@ -151,10 +144,10 @@
         // Update immediately on page load
         updateNotificationCount();
 
-        // Then update every 5 seconds
-        setInterval(updateNotificationCount, 5000);
-        {% endif %}
+        // Then update every 10 seconds
+        setInterval(updateNotificationCount, 10000);
     </script>
+    {% endif %}
 </body>
 
 </html>

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 {% extends 'cars/base.html' %}
+{% load humanize %}
 
 {% block content %}
 <div class="card" style="max-width: 800px; margin: 0 auto;">
@@ -50,19 +51,19 @@
     <div id="optionalFeatures">
         <label style="display:block; margin-bottom:0.5rem;">
             <input type="checkbox" id="warranty" onchange="updatePrice()" style="width:auto;">
-            Add Extended Warranty (+{{ currency_symbol }}<span class="feature-price">{{ warranty_price|floatformat:0 }}</span>)
+            Add Extended Warranty (+{{ currency_symbol }}<span class="feature-price">{{ warranty_price|floatformat:0|intcomma }}</span>)
         </label>
         <label style="display:block; margin-bottom:0.5rem;">
             <input type="checkbox" id="dashcam" onchange="updatePrice()" style="width:auto;">
-            Add Dash Cam (+{{ currency_symbol }}<span class="feature-price">{{ dashcam_price|floatformat:0 }}</span>)
+            Add Dash Cam (+{{ currency_symbol }}<span class="feature-price">{{ dashcam_price|floatformat:0|intcomma }}</span>)
         </label>
         <label style="display:block; margin-bottom:0.5rem;">
             <input type="checkbox" id="seatcovers" onchange="updatePrice()" style="width:auto;">
-            Add Custom Seat Covers (+{{ currency_symbol }}<span class="feature-price">{{ seatcovers_price|floatformat:0 }}</span>)
+            Add Custom Seat Covers (+{{ currency_symbol }}<span class="feature-price">{{ seatcovers_price|floatformat:0|intcomma }}</span>)
         </label>
         <label style="display:block; margin-bottom:0.5rem;">
             <input type="checkbox" id="tinting" onchange="updatePrice()" style="width:auto;">
-            Add Window Tinting (+{{ currency_symbol }}<span class="feature-price">{{ tinting_price|floatformat:0 }}</span>)
+            Add Window Tinting (+{{ currency_symbol }}<span class="feature-price">{{ tinting_price|floatformat:0|intcomma }}</span>)
         </label>
     </div>
     

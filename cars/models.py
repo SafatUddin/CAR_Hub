@@ -1,5 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.contrib.auth.models import User
+from django.db import models
+from django.utils import timezone
 
 class Car(models.Model):
     CAR_TYPES = (
@@ -50,6 +53,7 @@ class Notification(models.Model):
 class Order(models.Model):
     STATUS_CHOICES = (
         ('pending', 'Pending'),
+        ('paid', 'Paid'),
         ('completed', 'Completed'),
         ('cancelled', 'Cancelled'),
     )
@@ -64,9 +68,12 @@ class Order(models.Model):
     has_seatcovers = models.BooleanField(default=False)
     has_tinting = models.BooleanField(default=False)
     total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    
+    payment_method = models.CharField(max_length=20, blank=True, null=True)
+    payment_completed_at = models.DateTimeField(null=True, blank=True)
+
     def __str__(self):
         return f"Order {self.id} - {self.car} by {self.buyer}"
+    
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
@@ -74,3 +81,64 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return f"Profile for {self.user.username}"
+
+class PurchaseRequest(models.Model):
+    """Handles purchase requests from buyers to sellers"""
+    STATUS_CHOICES = [
+        ('pending', 'Pending Seller Approval'),
+        ('accepted', 'Accepted - Awaiting Payment'),
+        ('payment_pending', 'Payment Pending'),
+        ('paid', 'Paid - Transaction Complete'),
+        ('rejected', 'Rejected by Seller'),
+        ('cancelled', 'Cancelled by Buyer'),
+    ]
+    
+    car = models.ForeignKey('Car', on_delete=models.CASCADE, related_name='purchase_requests')
+    buyer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='my_purchase_requests')
+    seller = models.ForeignKey(User, on_delete=models.CASCADE, related_name='my_sale_requests')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    message = models.TextField(blank=True, help_text="Optional message to seller")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        unique_together = ['car', 'buyer']  # One request per buyer per car
+    
+    def __str__(self):
+        return f"{self.buyer.username} → {self.car}"
+
+
+class Payment(models.Model):
+    """Stores payment transaction details"""
+    PAYMENT_METHOD_CHOICES = [
+        ('credit_card', 'Credit Card'),
+        ('debit_card', 'Debit Card'),
+        ('bank_transfer', 'Bank Transfer'),
+        ('mobile_banking', 'Mobile Banking'),
+    ]
+    
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
+        ('refunded', 'Refunded'),
+    ]
+    
+    purchase_request = models.OneToOneField(PurchaseRequest, on_delete=models.CASCADE, related_name='payment')
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES)
+    transaction_id = models.CharField(max_length=100, unique=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    paid_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    # Optional: Store card details (last 4 digits only for display)
+    card_last4 = models.CharField(max_length=4, blank=True)
+    cardholder_name = models.CharField(max_length=100, blank=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"Payment {self.transaction_id} - ${self.amount}"

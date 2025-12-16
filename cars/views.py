@@ -15,6 +15,7 @@ from .patterns.adapter import CurrencyAdapter
 from .forms import SignUpForm, EditProfileForm, validate_email_domain, validate_whatsapp_number
 import re
 
+
 def welcome(request):
     # If user is already logged in, redirect to home
     if request.user.is_authenticated:
@@ -118,7 +119,7 @@ def buy_car(request, car_id):
         total_price += Decimal('10000')
         
     # Create Order with optional features
-    Order.objects.create(
+    order = Order.objects.create(
         buyer=request.user, 
         car=car,
         has_warranty=has_warranty,
@@ -134,8 +135,10 @@ def buy_car(request, car_id):
         message=f"New Buy Request: {request.user.username} wants to buy your {car.year} {car.make} {car.model}."
     )
     
-    messages.success(request, "Buy request sent! The seller has been notified.")
-    return redirect('car_detail', car_id=car.id)
+    messages.success(request, "Buy request sent!  Proceed to payment.")
+     
+    # Redirect to profile page
+    return redirect('profile')
 
 @login_required
 def update_car_status(request, car_id):

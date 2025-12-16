@@ -1,0 +1,88 @@
+{% extends 'cars/base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="card" style="max-width: 800px; margin: 0 auto;">
+    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem;">
+        <a href="{% url 'profile' %}" style="color: white; font-size: 1.5rem; text-decoration: none;">
+            <i class="fa-solid fa-arrow-left"></i>
+        </a>
+        <h2 style="margin: 0;">💳 Payment</h2>
+    </div>
+
+    <!-- Order Summary -->
+    <div class="card" style="background: rgba(255,255,255,0.05); margin-bottom: 2rem;">
+        <h3 style="margin-bottom: 1rem;">📋 Order Summary</h3>
+        
+        <div style="display: flex; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid var(--glass-border);">
+            <span style="color: #94a3b8;">Order ID</span>
+            <strong>#{{ order.id }}</strong>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid var(--glass-border);">
+            <span style="color: #94a3b8;">Vehicle</span>
+            <strong>{{ order.car.year }} {{ order.car.make }} {{ order.car.model }}</strong>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid var(--glass-border);">
+            <span style="color: #94a3b8;">Seller</span>
+            <strong>{{ order.car.owner.username }}</strong>
+        </div>
+
+        {% if order.has_warranty or order.has_dashcam or order.has_seatcovers or order.has_tinting %}
+        <div style="margin-top: 1rem; padding: 1rem; background: rgba(59, 130, 246, 0.1); border-radius: 0.5rem;">
+            <h4 style="margin:  0 0 0.5rem 0; font-size: 0.9rem; color: #60a5fa;">✨ Optional Features</h4>
+            {% if order.has_warranty %}<p style="margin: 0.25rem 0; font-size: 0.85rem;">✓ Extended Warranty</p>{% endif %}
+            {% if order.has_dashcam %}<p style="margin: 0.25rem 0; font-size: 0.85rem;">✓ Dash Cam</p>{% endif %}
+            {% if order.has_seatcovers %}<p style="margin: 0.25rem 0; font-size: 0.85rem;">✓ Custom Seat Covers</p>{% endif %}
+            {% if order.has_tinting %}<p style="margin: 0.25rem 0; font-size: 0.85rem;">✓ Window Tinting</p>{% endif %}
+        </div>
+        {% endif %}
+        
+        <div style="display: flex; justify-content: space-between; padding: 1.5rem 0 0.5rem 0; margin-top: 1rem; border-top: 2px solid var(--glass-border);">
+            <span style="font-size: 1.2rem; font-weight: 600;">Total Amount</span>
+            <strong style="font-size: 1.8rem; color: #10b981;">৳{{ order.total_price|floatformat:0|intcomma }}</strong>
+        </div>
+    </div>
+
+    <!-- Payment Methods -->
+    <form method="post" action="{% url 'process_payment' order.id %}">
+        {% csrf_token %}
+        
+        <h3 style="margin-bottom:  1.5rem;">💰 Select Payment Method</h3>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+            {% for method in payment_methods %}
+            <label style="cursor: pointer;">
+                <input type="radio" name="payment_method" value="{{ method.value }}" required style="display: none;" class="payment-radio">
+                <div class="payment-card card" style="padding: 2rem 1rem; text-align: center; border: 2px solid transparent; transition: all 0.3s;">
+                    <div style="font-size: 3rem; margin-bottom: 0.5rem;">{{ method.icon }}</div>
+                    <div style="font-size: 1.1rem; font-weight: 600; color: {{ method.color }};">{{ method.name }}</div>
+                </div>
+            </label>
+            {% endfor %}
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
+            💳 Proceed to Payment
+        </button>
+    </form>
+
+    <p style="text-align: center; color: #94a3b8; margin-top: 1.5rem; font-size: 0.9rem;">
+        <i class="fa-solid fa-shield-halved"></i> This is a mock payment for demonstration purposes
+    </p>
+</div>
+
+<style>
+    .payment-radio:checked + .payment-card {
+        border-color: #10b981 !important;
+        background: rgba(16, 185, 129, 0.1);
+        transform: scale(1.05);
+    }
+    
+    .payment-card: hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+</style>
+{% endblock %}

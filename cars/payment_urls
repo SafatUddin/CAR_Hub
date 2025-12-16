@@ -1,0 +1,12 @@
+from django.urls import path
+from . import payment_views
+
+urlpatterns = [
+    path('initiate/<int:order_id>/', payment_views.initiate_payment, name='initiate_payment'),
+    path('process/<int:payment_id>/', payment_views. payment_process, name='payment_process'),
+    path('confirm/<int:payment_id>/', payment_views.payment_confirm, name='payment_confirm'),
+    path('success/<int:payment_id>/', payment_views.payment_success, name='payment_success'),
+    path('failed/<int: payment_id>/', payment_views.payment_failed, name='payment_failed'),
+    path('history/', payment_views.payment_history, name='payment_history'),
+    path('webhook/', payment_views. payment_webhook, name='payment_webhook'),
+]
